@@ -140,7 +140,7 @@ def main():
     shoot_pos = np.array([shoot_x, shoot_y])
 
     ball_count = 1
-    balls_to_shoot = 0
+    balls_to_shoot = ball_count
     count_down = 0
 
     new_shoot_pos = None
@@ -193,13 +193,10 @@ def main():
             draw_arrow_modified(screen, BALL_COLOR, shoot_pos, mouse_vector, 200)
             if mouse_clicked:
                 responsive = False
-                balls_to_shoot = ball_count
                 count_down = 0
                 initial_velocity = normalize(mouse_vector, SPEED)
                 new_shoot_pos = None
         else:
-            screen.blit(smallfont.render('X' + str(balls_to_shoot), True, WHITE),
-                        (shoot_pos[0] + 20, shoot_pos[1] - 20))
             if balls_to_shoot:
                 if count_down == 0:
                     balls_to_shoot -= 1
@@ -211,6 +208,7 @@ def main():
                 rand_gen(grid, points, iteration)
                 game_over, taken_points = shift_down(grid, points)
                 ball_count += taken_points
+                balls_to_shoot = ball_count
                 shoot_pos = new_shoot_pos
                 new_shoot_pos = None
 
@@ -219,6 +217,7 @@ def main():
                     return iteration
                 responsive = True
 
+        screen.blit(smallfont.render('X' + str(balls_to_shoot), True, WHITE), (shoot_pos[0] + 20, shoot_pos[1] - 20))
         pygame.display.flip()
 
 
