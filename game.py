@@ -111,6 +111,7 @@ def main():
     # Initialise screen
     pygame.init()
     font = pygame.font.SysFont('Arial', 25)
+    smallfont = pygame.font.SysFont('Arial', 20)
     screen = pygame.display.set_mode((WIDTH * DIM_X, HEIGHT * DIM_Y))
     pygame.display.set_caption('Bricks')
 
@@ -197,6 +198,8 @@ def main():
                 initial_velocity = normalize(mouse_vector, SPEED)
                 new_shoot_pos = None
         else:
+            screen.blit(smallfont.render('X' + str(balls_to_shoot), True, WHITE),
+                        (shoot_pos[0] + 20, shoot_pos[1] - 20))
             if balls_to_shoot:
                 if count_down == 0:
                     balls_to_shoot -= 1
