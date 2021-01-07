@@ -193,11 +193,15 @@ class Ball:
             self.collision_safe_move()
         else:
             self.position += self.velocity
+        # Check for early termination.
         if EARLY_TERMINATE:
+            seg_x = int(self.position[0] // WIDTH)
             seg_y = int(self.position[1] // HEIGHT)
             if self.velocity[1] > 0 and \
                 all(not any(line) for line in self.grid[seg_y:]) and \
-                    all(not any(line) for line in self.points[seg_y:]):
+                    all(not any(line) for line in self.points[seg_y:]) and \
+                        safe_access_grid(self.grid, seg_x - 1, seg_y - 1) <= 0 and \
+                            safe_access_grid(self.grid, seg_x + 1, seg_y - 1) <= 0:
                 self.position[1] = HEIGHT * DIM_Y + SPEED * 10
 
     def collect_points(self):
