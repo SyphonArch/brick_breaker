@@ -27,4 +27,6 @@ MIN_ANGLE = 10
 
 FPS = 60
 
+EARLY_TERMINATE = False
+
 assert SPEED * 2 < HEIGHT
