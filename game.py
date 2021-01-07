@@ -163,10 +163,6 @@ def main():
         mouse_pos = pygame.mouse.get_pos()
 
         screen.blit(background, (0, 0))
-        # Top banner
-        screen.blit(font.render(str(int(clock.get_fps())) + ' Hz', True, RED), (WIDTH * DIM_X - 70, 0))
-        screen.blit(font.render('LEVEL: ' + str(iteration), True, WHITE), (10, 0))
-        screen.blit(font.render('BALLS: ' + str(ball_count), True, WHITE), (150, 0))
         draw_bricks(screen, grid, font)
         draw_points(screen, points)
         pygame.draw.circle(screen, BALL_COLOR, tuple(shoot_pos), RADIUS)
@@ -217,6 +213,10 @@ def main():
                     return iteration
                 responsive = True
 
+        # Top banner
+        screen.blit(font.render(str(int(clock.get_fps())) + ' Hz', True, RED), (WIDTH * DIM_X - 70, 0))
+        screen.blit(font.render('LEVEL: ' + str(iteration), True, WHITE), (10, 0))
+        screen.blit(font.render('BALLS: ' + str(ball_count), True, WHITE), (150, 0))
         screen.blit(smallfont.render('X' + str(balls_to_shoot), True, WHITE), (shoot_pos[0] + 20, shoot_pos[1] - 20))
         pygame.display.flip()
 
