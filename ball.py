@@ -263,12 +263,24 @@ class Ball:
                 rel_vec = rel_vec * FLIP_Y
         elif left and diag:  # 1 case
             if rel_end[0] <= RADIUS:
-                dec_left = True
+                ratio_a = RADIUS - rel_end[0]
+                ratio_b = rel_pos[0] - RADIUS
+                intersection_y = (rel_pos[1] * ratio_a + rel_end[1] * ratio_b) / (ratio_a + ratio_b)
+                if intersection_y > - DOUBLE_HIT_THRESHOLD:
+                    dec_left = True
+                if intersection_y < DOUBLE_HIT_THRESHOLD:
+                    dec_diag = True
                 rel_end = MIRROR_X + rel_end * FLIP_X
                 rel_vec = rel_vec * FLIP_X
         elif diag and top:  # 1 case
             if rel_end[1] <= RADIUS:
-                dec_top = True
+                ratio_a = RADIUS - rel_end[1]
+                ratio_b = rel_pos[1] - RADIUS
+                intersection_x = (rel_pos[0] * ratio_a + rel_end[0] * ratio_b) / (ratio_a + ratio_b)
+                if intersection_x > - DOUBLE_HIT_THRESHOLD:
+                    dec_top = True
+                if intersection_x < DOUBLE_HIT_THRESHOLD:
+                    dec_diag = True
                 rel_end = MIRROR_Y + rel_end * FLIP_Y
                 rel_vec = rel_vec * FLIP_Y
         elif left:  # 1 case

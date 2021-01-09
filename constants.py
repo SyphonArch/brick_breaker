@@ -16,6 +16,7 @@ TRAIL_COLOR = (0, 255, 255)
 
 RADIUS = 10  # radius of balls
 BORDER = 2  # border width of bricks
+DOUBLE_HIT_THRESHOLD = 3
 
 SPEED = 10  # speed of balls
 
