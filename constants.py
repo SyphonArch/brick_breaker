@@ -1,5 +1,5 @@
 WIDTH = 120
-HEIGHT = 70
+HEIGHT = 75
 
 DIM_X = 6
 DIM_Y = 9
@@ -16,7 +16,7 @@ TRAIL_COLOR = (0, 255, 255)
 
 RADIUS = 10  # radius of balls
 BORDER = 2  # border width of bricks
-DOUBLE_HIT_THRESHOLD = 3
+DOUBLE_HIT_THRESHOLD = 4
 
 SPEED = 10  # speed of balls
 
@@ -26,8 +26,9 @@ MINBRICK, MAXBRICK = 2, 4  # number of bricks to generate in every step
 
 MIN_ANGLE = 10
 
-FPS = 60
+FPS = 90
 
-EARLY_TERMINATION = False
+EARLY_TERMINATION = True
 
-assert SPEED * 2 < HEIGHT
+assert (RADIUS + SPEED) * 2 < HEIGHT
+assert (RADIUS + SPEED) * 2 < WIDTH
