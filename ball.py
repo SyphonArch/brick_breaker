@@ -194,7 +194,7 @@ class Ball:
         else:
             self.position += self.velocity
         # Check for early termination.
-        if EARLY_TERMINATE:
+        if EARLY_TERMINATION:
             seg_x = int(self.position[0] // WIDTH)
             seg_y = int(self.position[1] // HEIGHT)
             if self.velocity[1] > 0 and \

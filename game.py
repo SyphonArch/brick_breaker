@@ -124,8 +124,8 @@ def main():
     screen.blit(background, (0, 0))
     pygame.display.flip()
 
-    grid = [[0] * 6 for _ in range(9)]
-    points = [[0] * 6 for _ in range(9)]
+    grid = [[0] * DIM_X for _ in range(DIM_Y)]
+    points = [[0] * DIM_X for _ in range(DIM_Y)]
     balls = []
     initial_velocity = None
 
