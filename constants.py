@@ -30,5 +30,8 @@ FPS = 90
 
 EARLY_TERMINATION = True
 
+# Don't touch
 assert (RADIUS + SPEED) * 2 < HEIGHT
 assert (RADIUS + SPEED) * 2 < WIDTH
+RES_X = WIDTH * DIM_X
+RES_Y = HEIGHT * DIM_Y

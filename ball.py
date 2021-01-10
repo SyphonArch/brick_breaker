@@ -165,13 +165,14 @@ def circle_reflect(start, hit_point, vector):
 
 
 class Ball:
-    def __init__(self, screen, position, velocity, grid, points):
+    def __init__(self, screen, position, velocity, grid, points, frame_offset):
         self.screen = screen
         self.position = np.asarray(position, float)
         self.velocity = np.asarray(velocity, float)
         self.grid = grid
         self.points = points
         self.collected_points = 0
+        self.frame_offset = frame_offset
 
     def draw(self):
         if TRAIL:
@@ -188,21 +189,38 @@ class Ball:
         pygame.draw.circle(self.screen, BALL_COLOR, tuple(self.position), RADIUS)
 
     def tick(self):
+        if EARLY_TERMINATION:
+            self.early_termination()
+
         self.collect_points()
         if self.needs_collision_checking():
             self.collision_safe_move()
         else:
             self.position += self.velocity
-        # Check for early termination.
-        if EARLY_TERMINATION:
-            seg_x = int(self.position[0] // WIDTH)
-            seg_y = int(self.position[1] // HEIGHT)
-            if self.velocity[1] > 0 and \
-                all(not any(line) for line in self.grid[seg_y:]) and \
-                    all(not any(line) for line in self.points[seg_y:]) and \
-                        safe_access_grid(self.grid, seg_x - 1, seg_y - 1) <= 0 and \
-                            safe_access_grid(self.grid, seg_x + 1, seg_y - 1) <= 0:
-                self.position[1] = HEIGHT * DIM_Y + SPEED * 10
+        self.frame_offset += 1
+
+        if self.position[1] >= RES_Y:
+            self.frame_offset -= 1
+            self.position -= self.velocity
+            self.terminate()
+
+    def early_termination(self):
+        seg_x = int(self.position[0] // WIDTH)
+        seg_y = int(self.position[1] // HEIGHT)
+        if self.velocity[1] > 0 and all(not any(line) for line in self.grid[seg_y:]) and \
+                all(not any(line) for line in self.points[seg_y:]) and \
+                safe_access_grid(self.grid, seg_x - 1, seg_y - 1) <= 0 and \
+                safe_access_grid(self.grid, seg_x + 1, seg_y - 1) <= 0:
+            self.terminate()
+
+    def terminate(self):
+        vector_multiplier = (RES_Y - self.position[1]) / self.velocity[1]
+        self.position += vector_multiplier * self.velocity
+        boundary_crosses, rem = divmod(self.position[0], RES_X)
+        if boundary_crosses % 2:
+            rem = RES_X - rem
+        self.position[0] = rem
+        self.frame_offset += vector_multiplier
 
     def collect_points(self):
         seg_x, rem_x = divmod(self.position[0], WIDTH)
