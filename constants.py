@@ -22,8 +22,6 @@ SPEED = 10  # speed of balls
 
 INTERVAL = 40 // SPEED  # interval between balls in frames
 
-MINBRICK, MAXBRICK = 2, 4  # number of bricks to generate in every step
-
 MIN_ANGLE = 10
 
 FPS = 90
