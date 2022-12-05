@@ -236,7 +236,11 @@ def main():
                 responsive = True
 
         # Top banner
-        screen.blit(font.render(str(int(clock.get_fps())) + ' Hz', True, RED), (RES_X - 70, 0))
+        refresh_rate_render = font.render(str(int(clock.get_fps())) + ' Hz', True, RED)
+        refresh_rate_rect = refresh_rate_render.get_rect()
+        refresh_rate_rect.right = RES_X - 10
+
+        screen.blit(refresh_rate_render, refresh_rate_rect)
         screen.blit(font.render('LEVEL: ' + str(iteration), True, WHITE), (10, 0))
         screen.blit(font.render('BALLS: ' + str(ball_count), True, WHITE), (150, 0))
         screen.blit(smallfont.render('X' + str(balls_to_shoot), True, WHITE), (shoot_pos[0] + 20, RES_Y - 20))
