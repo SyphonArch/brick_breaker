@@ -169,8 +169,7 @@ def draw_arrow_modified(screen: pygame.Surface, color: tuple[int, int, int],
     """Draw an arrow starting from start, clipped by length, in vector direction."""
     if not any(vector):
         return
-    orig_length = (vector[0] ** 2 + vector[1] ** 2) ** 0.5
-    vector *= min(length / orig_length, 1)
+    vector *= min(length / physics.length(vector), 1)
     end = start + vector
     draw_arrow(screen, color, start, end)
 
