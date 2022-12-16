@@ -149,7 +149,7 @@ def shift_down(grid: list[list[int]], points: list[list[int]]) -> tuple[bool, in
 def draw_arrow(screen: pygame.Surface, color: tuple[int, int, int],
                start: npt.NDArray[float], end: npt.NDArray[float],
                trirad: int = 10, thickness: int = 4) -> None:
-    """Draw a arrow from start to end."""
+    """Draw an arrow from start to end."""
     lcolor = color
     tricolor = color
     rad = np.pi / 180
