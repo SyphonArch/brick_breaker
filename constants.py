@@ -1,3 +1,4 @@
+# Dimensions of a brick
 WIDTH = 120
 HEIGHT = 75
 
@@ -24,7 +25,7 @@ INTERVAL = 40 // SPEED  # interval between balls in frames
 
 MIN_ANGLE = 10
 
-FPS = 90
+FPS = 144
 
 EARLY_TERMINATION = True
 

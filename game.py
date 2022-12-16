@@ -1,5 +1,6 @@
 from random import randint, shuffle, choice
 import numpy as np
+import numpy.typing as npt
 from constants import *
 from ball import Ball, normalize, rotate
 
@@ -7,17 +8,24 @@ import pygame
 from pygame.locals import *
 
 
-def brick_color(value):
-    redness = min(value, 15) / 15
-    return 230 + redness * 25, 230 - redness * 230, 0
+def brick_color(value: int) -> npt.NDArray[int]:
+    """Given the value of a brick, return its RGB value."""
+    _full_red = 30
+    _full_blue = 40
+    assert _full_blue > _full_red
+    redness = min(value / _full_red, 1)
+    blueness = min((value - _full_red) / (_full_blue - _full_red), 1)
+    return np.clip(np.array([230 - blueness * 200, 230 - redness * 230, blueness * 70]).astype(int), 0, 255)
 
 
-def gridpos_to_coordinates(i, j):
+def gridpos_to_coordinates(i: int, j: int) -> tuple[int, int]:
+    """Given the coordinate of a grid position, return the pixel coordinates."""
     x, y = j * WIDTH, i * HEIGHT
     return x, y
 
 
-def draw_bricks(screen, grid, font):
+def draw_bricks(screen: pygame.Surface, grid: list[list[int]], font: pygame.font.Font) -> None:
+    """Draw the bricks onto the screen."""
     for i in range(len(grid)):
         line = grid[i]
         for j in range(len(line)):
@@ -32,6 +40,7 @@ def draw_bricks(screen, grid, font):
 
 
 def draw_points(screen, points):
+    """Draw the points onto the screen."""
     for i in range(len(points)):
         line = points[i]
         for j in range(len(line)):
