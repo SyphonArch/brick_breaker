@@ -110,14 +110,13 @@ def draw_points(screen: pygame.Surface, points: list[list[int]]) -> None:
 
 def rand_gen(grid: list[list[int]], points: list[list[int]], n) -> None:
     """Generate the bricks and points, given parameter n."""
-    if n < 100:
-        max_bricks = min(n // 10 + 2, DIM_X - 1)
-    else:
-        max_bricks = DIM_X
+    max_bricks = min(n // 10 + 2, DIM_X - 1)
     min_bricks = max(max_bricks - 3, 1)
     brick_count = randint(min_bricks, max_bricks)
+
     assert all(grid[0][i] == 0 for i in range(DIM_X))
     assert all(points[0][i] == 0 for i in range(DIM_X))
+
     placement = [n] * brick_count + [0] * (DIM_X - brick_count)
     shuffle(placement)
     grid[0] = placement
