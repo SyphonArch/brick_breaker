@@ -1,3 +1,5 @@
+import numpy as np
+
 # Dimensions of a brick
 WIDTH = 120
 HEIGHT = 75
@@ -34,3 +36,27 @@ assert (RADIUS + SPEED) * 2 < HEIGHT
 assert (RADIUS + SPEED) * 2 < WIDTH
 RES_X = WIDTH * DIM_X
 RES_Y = HEIGHT * DIM_Y
+
+R2 = RADIUS ** 2
+
+X_MIN = RADIUS + SPEED
+X_MAX = WIDTH - X_MIN
+
+Y_MIN = RADIUS + SPEED
+Y_MAX = HEIGHT - Y_MIN
+
+RELPOS_XY = np.array([WIDTH, HEIGHT])
+RELPOS_X = np.array([WIDTH, 0])
+RELPOS_Y = np.array([0, HEIGHT])
+
+FLIP_X = np.array([-1, 1])
+FLIP_Y = np.array([1, -1])
+FLIP_XY = np.array([-1, -1])
+
+MIRROR_XY = np.array([RADIUS * 2, RADIUS * 2])
+MIRROR_X = np.array([RADIUS * 2, 0])
+MIRROR_Y = np.array([0, RADIUS * 2])
+
+MAX_ANGLE = 180 - MIN_ANGLE
+MIN_ANGLE_RAD = (180 + MIN_ANGLE) / 180 * np.pi
+MAX_ANGLE_RAD = (180 + MAX_ANGLE) / 180 * np.pi

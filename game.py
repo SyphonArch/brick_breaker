@@ -1,120 +1,11 @@
-from random import randint, shuffle, choice
-import numpy as np
-import numpy.typing as npt
+from random import randint
 from constants import *
-from ball import Ball, normalize, rotate
+from ball import Ball
+import logic
+import physics
 
 import pygame
 from pygame.locals import *
-
-
-def brick_color(value: int) -> npt.NDArray[int]:
-    """Given the value of a brick, return its RGB value."""
-    _full_red = 30
-    _full_blue = 40
-    assert _full_blue > _full_red
-    redness = min(value / _full_red, 1)
-    blueness = min((value - _full_red) / (_full_blue - _full_red), 1)
-    return np.clip(np.array([230 - blueness * 200, 230 - redness * 230, blueness * 70]).astype(int), 0, 255)
-
-
-def gridpos_to_coordinates(i: int, j: int) -> tuple[int, int]:
-    """Given the coordinate of a grid position, return the pixel coordinates."""
-    x, y = j * WIDTH, i * HEIGHT
-    return x, y
-
-
-def draw_bricks(screen: pygame.Surface, grid: list[list[int]], font: pygame.font.Font) -> None:
-    """Draw the bricks onto the screen."""
-    for i in range(len(grid)):
-        line = grid[i]
-        for j in range(len(line)):
-            value = line[j]
-            if value:
-                x, y = gridpos_to_coordinates(i, j)
-                pygame.draw.rect(screen, brick_color(value), (x, y, WIDTH, HEIGHT))
-                pygame.draw.rect(screen, WHITE, (x, y, WIDTH, HEIGHT), width=BORDER)
-                value_text = font.render(str(value), True, WHITE)
-                text_rect = value_text.get_rect(center=(x + WIDTH // 2, y + HEIGHT // 2))
-                screen.blit(value_text, text_rect)
-
-
-def draw_points(screen, points):
-    """Draw the points onto the screen."""
-    for i in range(len(points)):
-        line = points[i]
-        for j in range(len(line)):
-            if line[j]:
-                x, y = gridpos_to_coordinates(i, j)
-                pygame.draw.circle(screen, GREEN, (x + WIDTH // 2, y + HEIGHT // 2), RADIUS)
-
-
-def rand_gen(grid, points, n):
-    if n < 100:
-        max_bricks = min(n // 10 + 2, DIM_X - 1)
-    else:
-        max_bricks = DIM_X
-    min_bricks = max(max_bricks - 3, 1)
-    brick_count = randint(min_bricks, max_bricks)
-    assert all(grid[0][i] == 0 for i in range(DIM_X))
-    assert all(points[0][i] == 0 for i in range(DIM_X))
-    placement = [n] * brick_count + [0] * (DIM_X - brick_count)
-    shuffle(placement)
-    grid[0] = placement
-    empties = [i for i in range(len(placement)) if placement[i] == 0]
-    point_idx = choice(empties)
-    points[0][point_idx] = 1
-
-
-def shift_down(grid, points):
-    assert all(grid[DIM_Y - 1][i] == 0 for i in range(DIM_X))
-    for i in range(DIM_Y - 1, 0, -1):
-        grid[i] = grid[i - 1]
-    grid[0] = [0] * DIM_X
-
-    for i in range(DIM_Y - 1, 0, -1):
-        points[i] = points[i - 1]
-    points[0] = [0] * DIM_X
-
-    taken_points = sum(points[DIM_Y - 1])
-    points[DIM_Y - 1] = [0] * DIM_X
-
-    return any(grid[DIM_Y - 1]), taken_points
-
-
-def draw_arrow(screen, color, start, end, trirad=10, thickness=4):
-    lcolor = color
-    tricolor = color
-    rad = np.pi / 180
-    pygame.draw.line(screen, lcolor, start, end, thickness)
-    rotation = np.arctan2(start[1] - end[1], end[0] - start[0]) + np.pi / 2
-    pygame.draw.polygon(screen, tricolor,
-                        ((end[0] + trirad * np.sin(rotation),
-                          end[1] + trirad * np.cos(rotation)),
-                         (end[0] + trirad * np.sin(rotation - 120 * rad),
-                          end[1] + trirad * np.cos(rotation - 120 * rad)),
-                         (end[0] + trirad * np.sin(rotation + 120 * rad),
-                          end[1] + trirad * np.cos(rotation + 120 * rad))))
-
-
-def draw_arrow_modified(screen, color, start, vector, length):
-    if not any(vector):
-        return
-    orig_length = (vector[0] ** 2 + vector[1] ** 2) ** 0.5
-    vector *= min(length / orig_length, 1)
-    end = start + vector
-    draw_arrow(screen, color, start, end)
-
-
-MAX_ANGLE = 180 - MIN_ANGLE
-MIN_ANGLE_RAD = (180 + MIN_ANGLE) / 180 * np.pi
-MAX_ANGLE_RAD = (180 + MAX_ANGLE) / 180 * np.pi
-
-
-def clipped_direction(vector):
-    angle = np.arctan2(vector[1], vector[0]) + np.pi * 2
-    target_angle = min(MAX_ANGLE_RAD, max(MIN_ANGLE_RAD, angle))
-    return rotate(vector, target_angle - angle)
 
 
 def main():
@@ -161,8 +52,8 @@ def main():
 
     iteration = 1
 
-    rand_gen(grid, points, iteration)
-    game_over = shift_down(grid, points)
+    logic.rand_gen(grid, points, iteration)
+    game_over = logic.shift_down(grid, points)
     pygame.display.flip()
 
     # Event loop
@@ -177,8 +68,8 @@ def main():
         mouse_pos = pygame.mouse.get_pos()
 
         screen.blit(background, (0, 0))
-        draw_bricks(screen, grid, font)
-        draw_points(screen, points)
+        logic.draw_bricks(screen, grid, font)
+        logic.draw_points(screen, points)
         pygame.draw.circle(screen, BALL_COLOR, tuple(shoot_pos), RADIUS)
         if new_shoot_pos is not None:
             pygame.draw.circle(screen, WHITE, tuple(new_shoot_pos), RADIUS)
@@ -204,12 +95,12 @@ def main():
 
         if responsive:
             mouse_vector = np.array(mouse_pos) - shoot_pos
-            mouse_vector = clipped_direction(mouse_vector)
-            draw_arrow_modified(screen, BALL_COLOR, shoot_pos, mouse_vector, 200)
+            mouse_vector = logic.clipped_direction(mouse_vector)
+            logic.draw_arrow_modified(screen, BALL_COLOR, shoot_pos, mouse_vector, 200)
             if mouse_clicked:
                 responsive = False
                 count_down = 0
-                initial_velocity = normalize(mouse_vector, SPEED)
+                initial_velocity = physics.normalize(mouse_vector, SPEED)
                 new_shoot_pos = None
         else:
             if balls_to_shoot:
@@ -223,8 +114,8 @@ def main():
             if not balls:
                 # next level
                 iteration += 1
-                rand_gen(grid, points, iteration)
-                game_over, taken_points = shift_down(grid, points)
+                logic.rand_gen(grid, points, iteration)
+                game_over, taken_points = logic.shift_down(grid, points)
                 ball_count += taken_points
                 balls_to_shoot = ball_count
                 ball_idx = 0
