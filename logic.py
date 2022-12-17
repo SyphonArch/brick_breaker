@@ -73,7 +73,7 @@ def brick_color(value: int) -> npt.NDArray[int]:
     _full_blue = 40
     assert _full_blue > _full_red
     redness = min(value / _full_red, 1)
-    blueness = min((value - _full_red) / (_full_blue - _full_red), 1)
+    blueness = min((value - _full_red) / _full_blue, 1)
     return np.clip(np.array([230 - blueness * 200, 230 - redness * 230, blueness * 70]).astype(int), 0, 255)
 
 
