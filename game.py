@@ -44,7 +44,7 @@ def main():
     ball_count = 1
     balls_to_shoot = ball_count
     ball_idx = 0
-    count_down = 0
+    ball_launch_count_down = 0
 
     first_fall_time = float('inf')
 
@@ -99,18 +99,18 @@ def main():
             logic.draw_arrow_modified(screen, BALL_COLOR, shoot_pos, mouse_vector, 200)
             if mouse_clicked:
                 responsive = False
-                count_down = 0
+                ball_launch_count_down = 0
                 initial_velocity = physics.normalize(mouse_vector, SPEED)
                 new_shoot_pos = None
         else:
             if balls_to_shoot:
-                if count_down == 0:
+                if ball_launch_count_down == 0:
                     balls_to_shoot -= 1
                     balls.append(Ball(screen, np.copy(shoot_pos), initial_velocity, grid, points,
                                       ball_idx * INTERVAL))
                     ball_idx += 1
-                    count_down = INTERVAL
-                count_down -= 1
+                    ball_launch_count_down = INTERVAL
+                ball_launch_count_down -= 1
             if not balls:
                 # next level
                 iteration += 1

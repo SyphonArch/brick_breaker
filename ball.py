@@ -8,7 +8,12 @@ import numpy.typing as npt
 
 
 class Ball:
-    def __init__(self, screen, position, velocity, grid, points, frame_offset):
+    def __init__(self, screen: pygame.Surface, position: npt.NDArray[float], velocity: npt.NDArray[float],
+                 grid: list[list[int]], points: list[list[int]], frame_offset: int | float):
+        """Initializes Ball.
+
+        Note that frame_offset should be set to the number of frames that have passed since the first ball of the round
+        has been launched."""
         self.screen = screen
         self.position = np.asarray(position, float)
         self.velocity = np.asarray(velocity, float)
