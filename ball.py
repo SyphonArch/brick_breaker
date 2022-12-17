@@ -4,6 +4,7 @@ import physics
 
 import pygame
 import numpy as np
+import numpy.typing as npt
 
 
 class Ball:
@@ -16,7 +17,8 @@ class Ball:
         self.collected_points = 0
         self.frame_offset = frame_offset
 
-    def draw(self):
+    def draw(self) -> None:
+        """Draw itself onto predetermined screen."""
         if TRAIL:
             rad = np.pi / 180
             trirad = RADIUS - 1
@@ -30,9 +32,10 @@ class Ball:
                                   self.position[1] + trirad * np.cos(rotation + 120 * rad))))
         pygame.draw.circle(self.screen, BALL_COLOR, tuple(self.position), RADIUS)
 
-    def tick(self):
+    def tick(self) -> None:
+        """Move the ball by one frame, and check for termination."""
         if EARLY_TERMINATION:
-            self.early_termination()
+            self.early_termination_check()
 
         self.collect_points()
         if self.needs_collision_checking():
@@ -46,7 +49,8 @@ class Ball:
             self.position -= self.velocity
             self.terminate()
 
-    def early_termination(self):
+    def early_termination_check(self) -> None:
+        """Check if the ball can be terminated early, and do so if conditions are met."""
         seg_x = int(self.position[0] // WIDTH)
         seg_y = int(self.position[1] // HEIGHT)
         if self.velocity[1] > 0 and all(not any(line) for line in self.grid[seg_y:]) and \
@@ -55,7 +59,9 @@ class Ball:
                 logic.safe_access_grid(self.grid, seg_x + 1, seg_y - 1) <= 0:
             self.terminate()
 
-    def terminate(self):
+    def terminate(self) -> None:
+        """Given a ball about to hit the baseline, calculate where on the x-axis the ball will hit,
+        and terminate."""
         vector_multiplier = (RES_Y - self.position[1]) / self.velocity[1]
         self.position += vector_multiplier * self.velocity
         boundary_crosses, rem = divmod(self.position[0], RES_X)
@@ -64,7 +70,8 @@ class Ball:
         self.position[0] = rem
         self.frame_offset += vector_multiplier
 
-    def collect_points(self):
+    def collect_points(self) -> None:
+        """Check whether points can be collected - if so, increment self.collected_points."""
         seg_x, rem_x = divmod(self.position[0], WIDTH)
         seg_y, rem_y = divmod(self.position[1], HEIGHT)
         seg_x = int(seg_x)
@@ -74,7 +81,8 @@ class Ball:
                 self.collected_points += 1
                 self.points[seg_y][seg_x] = 0
 
-    def needs_collision_checking(self):
+    def needs_collision_checking(self) -> bool:
+        """Determine whether the ball is in potential proximity of a wall or brick."""
         rem_x = self.position[0] % WIDTH
         rem_y = self.position[1] % HEIGHT
         if X_MIN < rem_x < X_MAX and Y_MIN < rem_y < Y_MAX:
@@ -82,7 +90,8 @@ class Ball:
         else:
             return True
 
-    def collision_safe_move(self):
+    def collision_safe_move(self) -> None:
+        """Move the ball, resolving any collisions that happen."""
         if not any(self.velocity):
             self.position += self.velocity
             return
@@ -95,7 +104,7 @@ class Ball:
         x_flip = rem_x > (WIDTH // 2)
         y_flip = rem_y > (HEIGHT // 2)
 
-        left, diag, top = logic.get_walls(self.grid, seg_x, seg_y, x_flip, y_flip)
+        left, diag, top = logic.get_surroundings(self.grid, seg_x, seg_y, x_flip, y_flip)
 
         if not left and not diag and not top:
             self.position += self.velocity
@@ -211,7 +220,10 @@ class Ball:
         self.velocity = real_vec
 
     @staticmethod
-    def get_circle_intersections(start, vector):
+    def get_circle_intersections(start: npt.NDArray[float], vector: npt.NDArray[float]) \
+            -> list[npt.NDArray[float], npt.NDArray[float]] | list:
+        """Return all intersection points between a circle of RADIUS at the origin, and a line segment starting from
+        start and ending at start + vector."""
         assert any(vector)
         if all(vector):
             dx, dy = vector
@@ -249,7 +261,10 @@ class Ball:
         return [np.array([x1, y1]), np.array([x2, y2])]
 
     @staticmethod
-    def circle_reflect(start, hit_point, vector):
+    def circle_reflect(start: npt.NDArray[float], hit_point: npt.NDArray[float], vector: npt.NDArray[float]) \
+            -> tuple[npt.NDArray[float], npt.NDArray[float]]:
+        """Given the starting position, the hit point, and a velocity,
+        calculate the resulting position and velocity after a collision with a circle at the origin."""
         traveled = physics.dist(start, hit_point)
         vec_len = physics.length(vector)
         to_travel = vec_len - traveled

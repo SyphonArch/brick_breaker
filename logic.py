@@ -6,18 +6,13 @@ from random import shuffle, randint, choice
 import pygame
 
 
-def reflect(position, flip_x, flip_y):
-    if flip_x and flip_y:
-        return FLIP_XY - position
-    elif flip_x:
-        return np.array([RADIUS * 2 - position[0], position[1]])
-    elif flip_y:
-        return np.array([position[0], RADIUS * 2 - position[1]])
-    else:
-        return position
+def safe_access_grid(grid: list[list[int]], seg_x: int, seg_y: int, decrement: bool = False) -> int:
+    """Safely access given segment of given grid.
 
+    Returns the value at the segment if valid segment is specified.
 
-def safe_access_grid(grid, seg_x, seg_y, decrement=False):
+    Returns -1 if the specified segment is out of bounds, and part of the top, left or right wall.
+    Returns 0 if the specified segment is out of bounds, and part of the baseline."""
     if 0 <= seg_x < DIM_X and 0 <= seg_y < DIM_Y:
         if decrement:
             assert grid[seg_y][seg_x] > 0
@@ -30,7 +25,10 @@ def safe_access_grid(grid, seg_x, seg_y, decrement=False):
             return 0
 
 
-def get_walls(grid, seg_x, seg_y, x_flip, y_flip):
+def get_surroundings(grid: list[list[int]], seg_x: int, seg_y: int, x_flip: bool, y_flip: bool) -> tuple[int, int, int]:
+    """Check the left, top, and diagonal segments and return grid values.
+
+    X and Y axes may be flipped."""
     dx = 1 if x_flip else -1
     dy = 1 if y_flip else -1
 
@@ -41,7 +39,9 @@ def get_walls(grid, seg_x, seg_y, x_flip, y_flip):
     return left, diag, top
 
 
-def decrement_bricks(grid, seg_x, seg_y, x_flip, y_flip, dec_left, dec_diag, dec_top):
+def decrement_bricks(grid: list[list[int]], seg_x: int, seg_y: int, x_flip: bool, y_flip: bool,
+                     dec_left: bool, dec_diag: bool, dec_top: bool) -> None:
+    """Decrement the left, top, and diagonal segments by 1 or 0."""
     dx = 1 if x_flip else -1
     dy = 1 if y_flip else -1
     safe_access_grid(grid, seg_x + dx, seg_y, dec_left)
@@ -49,7 +49,9 @@ def decrement_bricks(grid, seg_x, seg_y, x_flip, y_flip, dec_left, dec_diag, dec
     safe_access_grid(grid, seg_x, seg_y + dy, dec_top)
 
 
-def get_rel_values(position, vector, x_flip, y_flip):
+def get_rel_values(position: npt.NDArray[float], vector: npt.NDArray[float], x_flip: bool, y_flip: bool) \
+        -> tuple[npt.NDArray[float], npt.NDArray[float]]:
+    """Flip the position and velocity of ball within its segment."""
     if x_flip:
         if y_flip:
             rel_pos = RELPOS_XY + position * FLIP_XY
@@ -108,7 +110,7 @@ def draw_points(screen: pygame.Surface, points: list[list[int]]) -> None:
                 pygame.draw.circle(screen, GREEN, (x + WIDTH // 2, y + HEIGHT // 2), RADIUS)
 
 
-def rand_gen(grid: list[list[int]], points: list[list[int]], n) -> None:
+def rand_gen(grid: list[list[int]], points: list[list[int]], n: int) -> None:
     """Generate the bricks and points, given parameter n."""
     max_bricks = min(n // 10 + 2, DIM_X - 1)
     min_bricks = max(max_bricks - 3, 1)
@@ -149,7 +151,7 @@ def shift_down(grid: list[list[int]], points: list[list[int]]) -> tuple[bool, in
 def draw_arrow(screen: pygame.Surface, color: tuple[int, int, int],
                start: npt.NDArray[float], end: npt.NDArray[float],
                trirad: int = 10, thickness: int = 4) -> None:
-    """Draw an arrow from start to end."""
+    """Draw an arrow from given start to given end."""
     lcolor = color
     tricolor = color
     rad = np.pi / 180
