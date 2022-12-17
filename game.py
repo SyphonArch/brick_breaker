@@ -53,7 +53,7 @@ def main():
     iteration = 1
 
     logic.rand_gen(grid, points, iteration)
-    game_over = logic.shift_down(grid, points)
+    logic.shift_down(grid, points)
     pygame.display.flip()
 
     # Event loop
