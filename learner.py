@@ -109,11 +109,11 @@ class Network:
 
 class Breaker:
     input_layer_size = constants.DIM_X * constants.DIM_Y * 2 - constants.DIM_X + 1  # == 103
-    hidden_layer_size = 64
 
-    def __init__(self, network=None):
-        if network is None:
-            network = Network.xavier((Breaker.input_layer_size, Breaker.hidden_layer_size, 1))
+    def __init__(self, dimensions: tuple[int, ...]):
+        assert dimensions[0] == Breaker.input_layer_size
+        assert dimensions[-1] == 1
+        network = Network.xavier(dimensions)
         self.network = network
 
     def evaluate(self, grid: list[list[int]], points: list[list[int]], shoot_pos_x: float) -> float:
@@ -211,7 +211,7 @@ class Generation:
 POPULATION_SIZE = 1024
 TEMPLATE_COUNT = 16
 
-TARGET_ARCHITECTURE = (103, 64, 1)
+TARGET_ARCHITECTURE = (103, 64, 32, 1)
 
 
 def update_population(population: list[Breaker], sorted_scores: list[tuple[int, int]]) -> None:
@@ -241,13 +241,14 @@ def update_population(population: list[Breaker], sorted_scores: list[tuple[int, 
 
 
 def main():
+    print(f"TARGET ARCHITECTURE: {TARGET_ARCHITECTURE}")
     gen_start = 0
     while os.path.exists(f"./generations/{TARGET_ARCHITECTURE}-gen-{gen_start}.pickle"):
         gen_start += 1
 
     if gen_start == 0:
         print("Starting fresh!")
-        population = [Breaker() for _ in range(POPULATION_SIZE)]
+        population = [Breaker(TARGET_ARCHITECTURE) for _ in range(POPULATION_SIZE)]
     else:
         with open(f"./generations/{TARGET_ARCHITECTURE}-gen-{gen_start - 1}.pickle", 'rb') as f:
             genobj = pickle.load(f)
