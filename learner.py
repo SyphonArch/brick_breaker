@@ -4,6 +4,7 @@ import constants
 import pickle
 import time
 import os
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 from multiprocessing import Pool
 import game
 
