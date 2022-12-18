@@ -172,34 +172,40 @@ def crossover(chromosome1: npt.NDArray[float], chromosome2: npt.NDArray[float]) 
     return result_1, result_2
 
 
-def batch_simulate(population: list[Breaker], fitness: callable, process_count: None | int = None) \
-        -> list[tuple[int, int]]:
+def batch_simulate(population: list[Breaker], fitness: callable, repeats: int, discard: int,
+                   process_count: None | int = None, ) -> list[tuple[int, int]]:
     """Given population of Breakers and a fitness function, perform parallelized simulation.
 
-    Returns a list of tuples in (chromosome index, fitness score) form.
+    Returns a list of tuples in (chromosome index, fitness score) form, sorted in descending order.
     """
+    assert repeats - discard * 2 > 0
+    final_scores = []
     if process_count is None:
         process_count = os.cpu_count()
     with Pool(process_count) as p:
-        scores = list(enumerate(p.map(fitness, population)))
+        scores = p.map(fitness, population * repeats)
+    for i in range(len(population)):
+        my_scores = sorted([scores[i + len(population) * k] for k in range(repeats)])
+        score = sum(my_scores[discard:-discard]) / (repeats - 2 * discard)
+        final_scores.append((i, score))
 
-    scores.sort(key=lambda x: x[1], reverse=True)
-    return scores
+    sorted_scores = sorted(final_scores, key=lambda x: x[1], reverse=True)
+    return sorted_scores
 
 
-def breaker_run_5(breaker, *args, **kwargs):
-    scores = sorted([breaker.run(*args, **kwargs) for _ in range(5)])
-    return sum(scores[1:-1]) / 3
+def breaker_run(breaker, *args, **kwargs):
+    """Run the given Breaker and return score."""
+    return breaker.run(*args, **kwargs)
 
 
 class Generation:
-    def __init__(self, generation: int, population: list[Breaker], scores: list[tuple[int, int]]):
+    def __init__(self, generation: int, population: list[Breaker], sorted_scores: list[tuple[int, int]]):
         self.generation = generation
         self.population = population
-        self.scores = scores
+        self.sorted_scores = sorted_scores
 
     def __repr__(self):
-        return f"< Gen {self.generation}: {self.scores[0][1]}>"
+        return f"< Gen {self.generation}: Best {self.sorted_scores[0][1]:.1f} >"
 
 
 POPULATION_SIZE = 1024
@@ -208,9 +214,11 @@ TEMPLATE_COUNT = 16
 TARGET_ARCHITECTURE = (103, 64, 1)
 
 
-def update_population(population: list[Breaker], scores: list[tuple[int, int]]) -> None:
-    """Update the chromosomes of the population based on the scores."""
-    selected_indexes = [pair[0] for pair in scores[:TEMPLATE_COUNT]]
+def update_population(population: list[Breaker], sorted_scores: list[tuple[int, int]]) -> None:
+    """Update the chromosomes of the population based on the scores.
+
+    The scores must be sorted in descending order!!"""
+    selected_indexes = [pair[0] for pair in sorted_scores[:TEMPLATE_COUNT]]
     template_chromosomes = [population[idx].dump() for idx in selected_indexes]
     # 16 will be direct copies. 528 will be mutations of the templates.
     chromosome_pool = template_chromosomes[:]
@@ -241,35 +249,35 @@ def main():
         print("Starting fresh!")
         population = [Breaker() for _ in range(POPULATION_SIZE)]
     else:
-        print(f"Found existing progress: gen-{gen_start - 1}")
         with open(f"./generations/{TARGET_ARCHITECTURE}-gen-{gen_start - 1}.pickle", 'rb') as f:
             genobj = pickle.load(f)
+        print(f"Found existing progress: {genobj}")
         assert isinstance(genobj, Generation)
         assert gen_start - 1 == genobj.generation
         population = genobj.population
-        update_population(population, genobj.scores)
+        update_population(population, genobj.sorted_scores)
         print(f"Continuing from generation {gen_start}!")
 
     for generation in range(gen_start, 10000):
         print(f'----------- Gen {generation} -----------')
         print(f"Generation {generation} underway... ", end='')
         start = time.time()
-        scores = batch_simulate(population, breaker_run_5)
+        sorted_scores = batch_simulate(population, breaker_run, repeats=5, discard=1)
         end = time.time()
         print(f"that took {end - start:.1f} seconds!")
 
         # Save to file
-        print(f"Saving gen-{generation} to file...", end='')
+        print(f"Saving gen-{generation} to file... ", end='')
         with open(f"./generations/{population[0].network.shape()}-gen-{generation}.pickle", 'wb') as f:
-            genobj = Generation(generation, population, scores)
+            genobj = Generation(generation, population, sorted_scores)
             pickle.dump(genobj, f)
         print("Done!")
 
         # Showcase the fittest Breaker
-        print(f"Best of Generation {generation}: {scores[0][1]:.1f}")
-        population[scores[0][0]].run(title=f"gen-{generation}", draw=True, fps_cap=288, block=False)
+        print(f"Best of Generation {generation}: {sorted_scores[0][1]:.1f}")
+        population[sorted_scores[0][0]].run(title=f"gen-{generation}", draw=True, fps_cap=288, block=False)
 
-        update_population(population, scores)
+        update_population(population, sorted_scores)
 
 
 if __name__ == "__main__":
