@@ -8,14 +8,14 @@ import pygame
 from pygame.locals import *
 
 
-def main(breaker_override=None, draw: bool = True, fps_cap=FPS, block=False) -> int:
+def main(title="Bricks", breaker_override=None, draw: bool = True, fps_cap=FPS, block=False) -> int:
     if draw:
         # Initialise screen
         pygame.init()
         font = pygame.font.SysFont('Arial', 25)
         smallfont = pygame.font.SysFont('Arial', 20)
         screen = pygame.display.set_mode((RES_X, RES_Y))
-        pygame.display.set_caption('Bricks')
+        pygame.display.set_caption(title)
 
         # Fill background
         background = pygame.Surface(screen.get_size())

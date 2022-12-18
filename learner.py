@@ -147,8 +147,8 @@ class Breaker:
         """Load weights and biases from 1D array."""
         return self.network.load(chromosome)
 
-    def run(self, draw=False, fps_cap=constants.FPS, block=False):
-        return game.main(breaker_override=self, draw=draw, fps_cap=fps_cap, block=block)
+    def run(self, title="Breaker run", draw=False, fps_cap=constants.FPS, block=False):
+        return game.main(title=title, breaker_override=self, draw=draw, fps_cap=fps_cap, block=block)
 
 
 def mutate(chromosome: npt.NDArray[float], mutation_rate: float = 0.1):
@@ -228,24 +228,24 @@ def update_population(population: list[Breaker], scores: list[tuple[int, int]]) 
 
 
 def main():
-    start = 0
-    while os.path.exists(f"./generations/{TARGET_ARCHITECTURE}-gen-{start}.pickle"):
-        start += 1
+    gen_start = 0
+    while os.path.exists(f"./generations/{TARGET_ARCHITECTURE}-gen-{gen_start}.pickle"):
+        gen_start += 1
 
-    if start == 0:
+    if gen_start == 0:
         print("Starting fresh!")
         population = [Breaker() for _ in range(POPULATION_SIZE)]
     else:
-        print(f"Found existing progress: gen-{start - 1}")
-        with open(f"./generations/{TARGET_ARCHITECTURE}-gen-{start - 1}.pickle", 'rb') as f:
+        print(f"Found existing progress: gen-{gen_start - 1}")
+        with open(f"./generations/{TARGET_ARCHITECTURE}-gen-{gen_start - 1}.pickle", 'rb') as f:
             genobj = pickle.load(f)
         assert isinstance(genobj, Generation)
-        assert start - 1 == genobj.generation
+        assert gen_start - 1 == genobj.generation
         population = genobj.population
         update_population(population, genobj.scores)
-        print(f"Continuing from generation {start}!")
+        print(f"Continuing from generation {gen_start}!")
 
-    for generation in range(start, 10000):
+    for generation in range(gen_start, 10000):
         print(f'----------- Gen {generation} -----------')
         print(f"Generation {generation} underway... ", end='')
         start = time.time()
@@ -254,15 +254,17 @@ def main():
         print(f"that took {end - start:.1f} seconds!")
 
         # Save to file
-        print("Saving gen-{} to file...", end='')
+        print(f"Saving gen-{generation} to file...", end='')
+        start = time.time()
         with open(f"./generations/{population[0].network.shape()}-gen-{generation}.pickle", 'wb') as f:
             genobj = Generation(generation, population, scores)
             pickle.dump(genobj, f)
-        print(f"Done!")
+        end = time.time()
+        print(f"Done! ({end - start:.1f} s)")
 
         # Showcase the fittest Breaker
         print(f"Best of Generation {generation}: {scores[0][1]:.1f}")
-        population[scores[0][0]].run(draw=True, fps_cap=288, block=False)
+        population[scores[0][0]].run(title=f"gen-{generation}", draw=True, fps_cap=288, block=False)
 
         update_population(population, scores)
 
