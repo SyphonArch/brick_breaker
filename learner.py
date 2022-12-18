@@ -200,45 +200,71 @@ class Generation:
 POPULATION_SIZE = 1024
 TEMPLATE_COUNT = 16
 
+TARGET_ARCHITECTURE = (103, 64, 1)
+
+
+def update_population(population: list[Breaker], scores: list[tuple[int, int]]) -> None:
+    """Update the chromosomes of the population based on the scores."""
+    selected_indexes = [pair[0] for pair in scores[:TEMPLATE_COUNT]]
+    template_chromosomes = [population[idx].dump() for idx in selected_indexes]
+    # 16 will be direct copies. 528 will be mutations of the templates.
+    chromosome_pool = template_chromosomes[:]
+    for idx in range(TEMPLATE_COUNT):
+        for _ in range(33):
+            chromosome_pool.append(mutate(template_chromosomes[idx]))
+    # 240 will be crossovers between the templates.
+    crossovers = []
+    for idx1 in range(TEMPLATE_COUNT):
+        for idx2 in range(idx1 + 1, TEMPLATE_COUNT):
+            crossovers += list(crossover(template_chromosomes[idx1], template_chromosomes[idx2]))
+    chromosome_pool += crossovers
+    # 240 will be mutations of the crossed-over templates.
+    for chromosome in crossovers:
+        chromosome_pool.append(mutate(chromosome))
+    # This will amount to a total of 1024 chromosomes, for the next generation!
+    assert len(chromosome_pool) == POPULATION_SIZE
+    for idx, breaker in enumerate(population):
+        breaker.load(chromosome_pool[idx])
+
 
 def main():
-    population = [Breaker() for _ in range(POPULATION_SIZE)]
-    for generation in range(288):
-        print(f"Generation {generation} took... ", end='')
+    start = 0
+    while os.path.exists(f"./generations/{TARGET_ARCHITECTURE}-gen-{start}.pickle"):
+        start += 1
+
+    if start == 0:
+        print("Starting fresh!")
+        population = [Breaker() for _ in range(POPULATION_SIZE)]
+    else:
+        print(f"Found existing progress: gen-{start - 1}")
+        with open(f"./generations/{TARGET_ARCHITECTURE}-gen-{start - 1}.pickle", 'rb') as f:
+            genobj = pickle.load(f)
+        assert isinstance(genobj, Generation)
+        assert start - 1 == genobj.generation
+        population = genobj.population
+        update_population(population, genobj.scores)
+        print(f"Continuing from generation {start}!")
+
+    for generation in range(start, 10000):
+        print(f'----------- Gen {generation} -----------')
+        print(f"Generation {generation} underway... ", end='')
         start = time.time()
         scores = batch_simulate(population, breaker_run_5)
         end = time.time()
-        print(f"{end - start:.1f} seconds to simulate.")
+        print(f"that took {end - start:.1f} seconds!")
 
         # Save to file
+        print("Saving gen-{} to file...", end='')
         with open(f"./generations/{population[0].network.shape()}-gen-{generation}.pickle", 'wb') as f:
             genobj = Generation(generation, population, scores)
             pickle.dump(genobj, f)
+        print(f"Done!")
 
         # Showcase the fittest Breaker
         print(f"Best of Generation {generation}: {scores[0][1]:.1f}")
         population[scores[0][0]].run(draw=True, fps_cap=288, block=False)
 
-        selected_indexes = [pair[0] for pair in scores[:TEMPLATE_COUNT]]
-        template_chromosomes = [population[idx].dump() for idx in selected_indexes]
-        # 16 will be direct copies. 528 will be mutations of the templates.
-        chromosome_pool = template_chromosomes[:]
-        for idx in range(TEMPLATE_COUNT):
-            for _ in range(33):
-                chromosome_pool.append(mutate(template_chromosomes[idx]))
-        # 240 will be crossovers between the templates.
-        crossovers = []
-        for idx1 in range(TEMPLATE_COUNT):
-            for idx2 in range(idx1 + 1, TEMPLATE_COUNT):
-                crossovers += list(crossover(template_chromosomes[idx1], template_chromosomes[idx2]))
-        chromosome_pool += crossovers
-        # 240 will be mutations of the crossed-over templates.
-        for chromosome in crossovers:
-            chromosome_pool.append(mutate(chromosome))
-        # This will amount to a total of 1024 chromosomes, for the next generation!
-        assert len(chromosome_pool) == POPULATION_SIZE
-        for idx, breaker in enumerate(population):
-            breaker.load(chromosome_pool[idx])
+        update_population(population, scores)
 
 
 if __name__ == "__main__":
