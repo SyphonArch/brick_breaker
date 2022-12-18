@@ -1,5 +1,11 @@
 import numpy as np
 import numpy.typing as npt
+import constants
+import pickle
+import time
+import os
+from multiprocessing import Pool
+import game
 
 
 def sigmoid(x: float | npt.NDArray[float]) -> float | npt.NDArray[float]:
@@ -15,7 +21,7 @@ class Network:
 
         # Check the dimensions of the weights and biases
         assert weights and all(weight_mat.ndim == 2 for weight_mat in weights)
-        assert biases and all(bias_mat.ndim == 1 for bias_mat in biases)
+        assert biases and all(bias_vec.ndim == 1 for bias_vec in biases)
 
         # Check that the number of layers is consistent.
         layer_count = len(weights)
@@ -57,7 +63,7 @@ class Network:
         else:
             return np.array([self.evaluate(x_elem) for x_elem in x])
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> npt.NDArray[float]:
         """Evaluate one or many arguments."""
         assert len(args) > 0
         if len(args) == 1:
@@ -65,8 +71,28 @@ class Network:
         else:
             return self.evaluate(np.asarray(args))
 
+    def dump(self):
+        """Dump the network's weights and biases into a 1D array."""
+        return np.concatenate((*(weight_mat.flatten() for weight_mat in self.weights), *self.biases))
+
+    def load(self, chromosome):
+        """Load weights and biases from 1D array."""
+        weight_count = sum(weight_mat.size for weight_mat in self.weights)
+        bias_count = sum(bias_vec.size for bias_vec in self.biases)
+        assert weight_count + bias_count == len(chromosome)
+        head = 0
+        for i, weight_mat in enumerate(self.weights):
+            tail = head + weight_mat.size
+            self.weights[i] = np.reshape(chromosome[head:tail], self.weights[i].shape)
+            head = tail
+        for i, bias_vec in enumerate(self.biases):
+            tail = head + bias_vec.size
+            self.biases[i] = chromosome[head:tail]
+            head = tail
+        assert head == len(chromosome)
+
     @classmethod
-    def xavier(cls, dimensions: list[int], *args, **kwargs):
+    def xavier(cls, dimensions: tuple[int, ...], *args, **kwargs):
         """Create a new Network with Xavier initialization."""
         weights = [(np.random.rand(dimensions[i + 1], dimensions[i]) - 0.5) * 2 / np.sqrt(dimensions[i])
                    for i in range(len(dimensions) - 1)]
@@ -79,4 +105,88 @@ class Network:
                ' >'
 
 
-mynet = Network.xavier([96, 48, 1])
+class Breaker:
+    input_layer_size = constants.DIM_X * constants.DIM_Y * 2 - constants.DIM_X + 1  # == 103
+    hidden_layer_size = 64
+
+    def __init__(self, network=None):
+        if network is None:
+            network = Network.xavier((Breaker.input_layer_size, Breaker.hidden_layer_size, 1))
+        self.network = network
+
+    def evaluate(self, grid: list[list[int]], points: list[list[int]], shoot_pos_x: float) -> float:
+        """Evaluate given game state and return angle at which to shoot balls."""
+        grid_preprocessed = np.log2(np.asarray(grid[:-1]).flatten() + 1)  # DIM_X * (DIM_Y - 1) == 48
+        points_preprocessed = np.asarray(points).flatten()  # DIM_X * DIM_Y == 54
+        shoot_pos_preprocessed = shoot_pos_x / constants.RES_X
+
+        # Create input vector
+        input_vector = np.concatenate((grid_preprocessed, points_preprocessed, [shoot_pos_preprocessed]))
+        # Receive output vector
+        output_value = self.network(input_vector)
+
+        # Clip and map range
+        clip_size = 0.2
+        zero_one_range_val = (np.clip(output_value, clip_size, 1 - clip_size) - clip_size) / (1 - 2 * clip_size)
+        angle = (constants.MAX_ANGLE_RAD - constants.MIN_ANGLE_RAD) * zero_one_range_val + constants.MIN_ANGLE_RAD
+        return angle
+
+    def __call__(self, *args, **kwargs) -> float:
+        return self.evaluate(*args, **kwargs)
+
+    def __repr__(self):
+        return f"[ Breaker with {self.network} ]"
+
+    def dump(self):
+        """Dump the network's weights and biases into a 1D array."""
+        return self.network.dump()
+
+    def load(self, chromosome):
+        """Load weights and biases from 1D array."""
+        return self.network.load(chromosome)
+
+    def run(self, draw=True, fps_cap=constants.FPS):
+        return game.main(breaker_override=self, draw=draw, fps_cap=fps_cap)
+
+
+def mutate(chromosome: npt.NDArray[float], mutation_rate: float = 0.1):
+    """Mutate given chromosome and return copy."""
+    mutation_mask = np.random.rand(len(chromosome)) < mutation_rate
+    deviation = np.random.normal(loc=0, scale=0.05, size=len(chromosome))
+    return chromosome + deviation * mutation_mask
+
+
+def crossover(chromosome1: npt.NDArray[float], chromosome2: npt.NDArray[float]) \
+        -> tuple[npt.NDArray[float], npt.NDArray[float]]:
+    """Perform crossover of two chromosomes and return the two results."""
+    k = np.random.randint(0, len(chromosome1) - 1)
+    result_1 = np.concatenate((chromosome1[:k], chromosome2[k:]))
+    result_2 = np.concatenate((chromosome2[:k], chromosome1[k:]))
+    return result_1, result_2
+
+
+def batch_simulate(population: list[Breaker], fitness: callable, process_count: None | int = None) \
+        -> list[tuple[int, int]]:
+    """Given population of Breakers and a fitness function, perform parallelized simulation.
+
+    Returns a list of tuples in (chromosome index, fitness score) form.
+    """
+    if process_count is None:
+        process_count = os.cpu_count()
+    with Pool(process_count) as p:
+        scores = list(enumerate(p.map(fitness, population)))
+
+    scores.sort(key=lambda x: x[1], reverse=True)
+    return scores
+
+
+def breaker_run(breaker, *args, **kwargs):
+    return breaker.run(*args, **kwargs)
+
+
+if __name__ == "__main__":
+    start = time.time()
+    for _ in range(30):
+        b = Breaker()
+        print(b.run(draw=False))
+    print(time.time() - start)
