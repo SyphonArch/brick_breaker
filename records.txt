@@ -7,7 +7,7 @@ Note that each iteration had a typical score of 8 to 12.
     Uncapping FPS:
         147.70 s -> 19.96 s (7.4x improvement)
     Headless:
-        19.96 s -> 0.83
+        19.96 s -> 0.83 s
 
     Assuming that a typical run when the network has been trained takes 10x longer,
     And that performance scales perfectly with 32 cores,
@@ -23,3 +23,13 @@ Note that each iteration had a typical score of 8 to 12.
     we get n == 1200.
     I don't think that a larger population size will be critical in the end result,
     so let's have n == 1024 to make things nice.
+
+Testing scalingg with multiprocessing
+    1 process, n=1024 at gen 0 took 35 seconds.
+    32 processes, n=1024 at gen 0 took 2.9 seconds.
+    --> This is a 12x improvement. Hmm..
+
+    1 process, n=4096 at gen 0 took 139 seconds.
+    16 processes, n=4096 at gen 0 took 15.3 seconds.
+    32 processes, n=4096 at gen 0 took 11.4 seconds.
+    --> Still a 12x improvement. I guess this is what the truth is.

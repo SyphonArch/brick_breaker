@@ -100,9 +100,11 @@ class Network:
         return cls(weights, biases, *args, **kwargs)
 
     def __repr__(self):
-        return "< Network: " + \
-               '-'.join(map(str, [self.input_dim()] + [self.layer_output_dim(i) for i in range(self.layer_count)])) + \
-               ' >'
+        return "< Network: " + '-'.join(map(str, self.shape())) + ' >'
+
+    def shape(self) -> tuple[int, ...]:
+        """Return the dimensions of the network."""
+        return tuple([self.input_dim()] + [self.layer_output_dim(i) for i in range(self.layer_count)])
 
 
 class Breaker:
@@ -128,7 +130,7 @@ class Breaker:
         # Clip and map range
         clip_size = 0.2
         zero_one_range_val = (np.clip(output_value, clip_size, 1 - clip_size) - clip_size) / (1 - 2 * clip_size)
-        angle = (constants.MAX_ANGLE_RAD - constants.MIN_ANGLE_RAD) * zero_one_range_val + constants.MIN_ANGLE_RAD
+        angle = (constants.ANGLE_MAX_RAD - constants.ANGLE_MIN_RAD) * zero_one_range_val + constants.ANGLE_MIN_RAD
         return angle
 
     def __call__(self, *args, **kwargs) -> float:
@@ -145,8 +147,8 @@ class Breaker:
         """Load weights and biases from 1D array."""
         return self.network.load(chromosome)
 
-    def run(self, draw=True, fps_cap=constants.FPS):
-        return game.main(breaker_override=self, draw=draw, fps_cap=fps_cap)
+    def run(self, draw=False, fps_cap=constants.FPS, block=False):
+        return game.main(breaker_override=self, draw=draw, fps_cap=fps_cap, block=block)
 
 
 def mutate(chromosome: npt.NDArray[float], mutation_rate: float = 0.1):
@@ -180,13 +182,64 @@ def batch_simulate(population: list[Breaker], fitness: callable, process_count: 
     return scores
 
 
-def breaker_run(breaker, *args, **kwargs):
-    return breaker.run(*args, **kwargs)
+def breaker_run_5(breaker, *args, **kwargs):
+    scores = sorted([breaker.run(*args, **kwargs) for _ in range(5)])
+    return sum(scores[1:-1]) / 3
+
+
+class Generation:
+    def __init__(self, generation: int, population: list[Breaker], scores: list[tuple[int, int]]):
+        self.generation = generation
+        self.population = population
+        self.scores = scores
+
+    def __repr__(self):
+        return f"< Gen {self.generation}: {self.scores[0][1]}>"
+
+
+POPULATION_SIZE = 1024
+TEMPLATE_COUNT = 16
+
+
+def main():
+    population = [Breaker() for _ in range(POPULATION_SIZE)]
+    for generation in range(288):
+        print(f"Generation {generation} took... ", end='')
+        start = time.time()
+        scores = batch_simulate(population, breaker_run_5)
+        end = time.time()
+        print(f"{end - start:.1f} seconds to simulate.")
+
+        # Save to file
+        with open(f"./generations/{population[0].network.shape()}-gen-{generation}.pickle", 'wb') as f:
+            genobj = Generation(generation, population, scores)
+            pickle.dump(genobj, f)
+
+        # Showcase the fittest Breaker
+        print(f"Best of Generation {generation}: {scores[0][1]:.1f}")
+        population[scores[0][0]].run(draw=True, fps_cap=288, block=False)
+
+        selected_indexes = [pair[0] for pair in scores[:TEMPLATE_COUNT]]
+        template_chromosomes = [population[idx].dump() for idx in selected_indexes]
+        # 16 will be direct copies. 528 will be mutations of the templates.
+        chromosome_pool = template_chromosomes[:]
+        for idx in range(TEMPLATE_COUNT):
+            for _ in range(33):
+                chromosome_pool.append(mutate(template_chromosomes[idx]))
+        # 240 will be crossovers between the templates.
+        crossovers = []
+        for idx1 in range(TEMPLATE_COUNT):
+            for idx2 in range(idx1 + 1, TEMPLATE_COUNT):
+                crossovers += list(crossover(template_chromosomes[idx1], template_chromosomes[idx2]))
+        chromosome_pool += crossovers
+        # 240 will be mutations of the crossed-over templates.
+        for chromosome in crossovers:
+            chromosome_pool.append(mutate(chromosome))
+        # This will amount to a total of 1024 chromosomes, for the next generation!
+        assert len(chromosome_pool) == POPULATION_SIZE
+        for idx, breaker in enumerate(population):
+            breaker.load(chromosome_pool[idx])
 
 
 if __name__ == "__main__":
-    start = time.time()
-    for _ in range(30):
-        b = Breaker()
-        print(b.run(draw=False))
-    print(time.time() - start)
+    main()

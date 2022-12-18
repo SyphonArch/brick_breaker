@@ -150,7 +150,7 @@ def shift_down(grid: list[list[int]], points: list[list[int]]) -> tuple[bool, in
 
 def draw_arrow(screen: pygame.Surface, color: tuple[int, int, int],
                start: npt.NDArray[float], end: npt.NDArray[float],
-               trirad: int = 10, thickness: int = 4) -> None:
+               trirad: int = ARROW_HEAD_RADIUS, thickness: int = ARROW_THICKNESS) -> None:
     """Draw an arrow from given start to given end."""
     lcolor = color
     tricolor = color
@@ -167,11 +167,11 @@ def draw_arrow(screen: pygame.Surface, color: tuple[int, int, int],
 
 
 def draw_arrow_modified(screen: pygame.Surface, color: tuple[int, int, int],
-                        start: npt.NDArray[float], vector: npt.NDArray[float], length: int) -> None:
+                        start: npt.NDArray[float], vector: npt.NDArray[float], max_length: int) -> None:
     """Draw an arrow starting from start, clipped by length, in vector direction."""
     if not any(vector):
         return
-    vector *= min(length / physics.length(vector), 1)
+    vector *= min(max_length / physics.length(vector), 1)
     end = start + vector
     draw_arrow(screen, color, start, end)
 
@@ -179,5 +179,5 @@ def draw_arrow_modified(screen: pygame.Surface, color: tuple[int, int, int],
 def clipped_direction(vector: npt.NDArray[float]) -> npt.NDArray[float]:
     """Given a vector, clip the angle it makes with the x-axis."""
     angle = np.arctan2(vector[1], vector[0]) + np.pi * 2
-    target_angle = min(MAX_ANGLE_RAD, max(MIN_ANGLE_RAD, angle))
+    target_angle = min(ANGLE_MAX_RAD, max(ANGLE_MIN_RAD, angle))
     return physics.rotate(vector, target_angle - angle)

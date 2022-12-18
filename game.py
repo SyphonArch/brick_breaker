@@ -8,7 +8,7 @@ import pygame
 from pygame.locals import *
 
 
-def main(breaker_override=None, draw: bool = True, fps_cap=FPS) -> int:
+def main(breaker_override=None, draw: bool = True, fps_cap=FPS, block=False) -> int:
     if draw:
         # Initialise screen
         pygame.init()
@@ -92,14 +92,19 @@ def main(breaker_override=None, draw: bool = True, fps_cap=FPS) -> int:
             screen.blit(font.render('BALLS: ' + str(ball_count), True, WHITE), (150, 0))
             screen.blit(smallfont.render('X' + str(balls_to_shoot), True, WHITE), (shoot_pos[0] + 20, RES_Y - 20))
 
+            if breaker_override is None:
+                mouse_pos = pygame.mouse.get_pos()
+                mouse_vector = np.array(mouse_pos) - shoot_pos
+                mouse_vector = logic.clipped_direction(mouse_vector)
+
             if responsive:
-                logic.draw_arrow_modified(screen, BALL_COLOR, shoot_pos, mouse_vector, 200)
+                if breaker_override is None:
+                    arrow_color = BALL_COLOR
+                else:
+                    arrow_color = RED
+                logic.draw_arrow_modified(screen, arrow_color, shoot_pos, mouse_vector, ARROW_MAX_LENGTH)
 
             pygame.display.flip()
-
-            mouse_pos = pygame.mouse.get_pos()
-            mouse_vector = np.array(mouse_pos) - shoot_pos
-            mouse_vector = logic.clipped_direction(mouse_vector)
 
             for event in pygame.event.get():
                 if event.type == QUIT:
@@ -112,10 +117,13 @@ def main(breaker_override=None, draw: bool = True, fps_cap=FPS) -> int:
                     print("I don't know what you're planning to do with no interface.")
                     print("I guess we could just stare at each other forever.")
                     message_printed = True
+
         if breaker_override is not None:
             shoot_angle = breaker_override(grid, points, shoot_pos[0])
-            mouse_vector = physics.rotate(np.array([1, 0]), shoot_angle)
-            mouse_clicked = True
+            mouse_vector = physics.rotate(np.array([ARROW_MAX_LENGTH, 0]), shoot_angle)
+            # If block == True, then a mouse click needs to happen to unblock AI.
+            if not block or mouse_clicked:
+                mouse_clicked = True
 
         for ball in balls:
             ball_count += ball.collected_points
