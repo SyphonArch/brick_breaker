@@ -21,6 +21,7 @@ class Ball:
         self.points = points
         self.collected_points = 0
         self.frame_offset = frame_offset
+        self.terminated = False
 
         self.X_MIN = RADIUS + speed
         self.X_MAX = WIDTH - self.X_MIN
@@ -44,6 +45,10 @@ class Ball:
 
     def tick(self) -> None:
         """Move the ball by one frame, and check for termination."""
+        if self.terminated:
+            print("Attempted to move a terminated ball!")
+            return
+
         if EARLY_TERMINATION:
             self.early_termination_check()
 
@@ -78,7 +83,9 @@ class Ball:
         if boundary_crosses % 2:
             rem = RES_X - rem
         self.position[0] = rem
+        self.position[1] = 0
         self.frame_offset += vector_multiplier
+        self.terminated = True
 
     def collect_points(self) -> None:
         """Check whether points can be collected - if so, increment self.collected_points."""

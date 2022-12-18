@@ -45,7 +45,7 @@ def main(title="Bricks", breaker_override=None, draw: bool = True, fps_cap=FPS, 
     grid = [[0] * DIM_X for _ in range(DIM_Y)]
     points = [[0] * DIM_X for _ in range(DIM_Y)]
     balls = []
-    dead_balls = []
+    parked_balls = []
     initial_velocity = None
 
     responsive = True
@@ -139,11 +139,11 @@ def main(title="Bricks", breaker_override=None, draw: bool = True, fps_cap=FPS, 
             ball.tick()
         live_balls = []
         for ball in balls:
-            if ball.position[1] < RES_Y:
+            if not ball.terminated:
                 live_balls.append(ball)
             else:
                 if EARLY_TERMINATION:
-                    dead_balls.append(ball)
+                    parked_balls.append(ball)
                 else:
                     # grab the first ball to fall
                     if ball.frame_offset < first_fall_time:
@@ -176,10 +176,10 @@ def main(title="Bricks", breaker_override=None, draw: bool = True, fps_cap=FPS, 
                 ball_idx = 0
 
                 if EARLY_TERMINATION:
-                    dead_balls.sort(key=lambda b: b.frame_offset)
-                    first_ball_to_fall = dead_balls[0]
+                    parked_balls.sort(key=lambda b: b.frame_offset)
+                    first_ball_to_fall = parked_balls[0]
                     new_shoot_pos = np.array([first_ball_to_fall.position[0], RES_Y])
-                    dead_balls = []
+                    parked_balls = []
 
                 first_fall_time = float('inf')
                 shoot_pos = new_shoot_pos
