@@ -9,7 +9,7 @@ import numpy.typing as npt
 
 class Ball:
     def __init__(self, screen: pygame.Surface, position: npt.NDArray[float], velocity: npt.NDArray[float],
-                 grid: list[list[int]], points: list[list[int]], frame_offset: int | float):
+                 grid: list[list[int]], points: list[list[int]], frame_offset: int | float, speed: int):
         """Initializes Ball.
 
         Note that frame_offset should be set to the number of frames that have passed since the first ball of the round
@@ -21,6 +21,11 @@ class Ball:
         self.points = points
         self.collected_points = 0
         self.frame_offset = frame_offset
+
+        self.X_MIN = RADIUS + speed
+        self.X_MAX = WIDTH - self.X_MIN
+        self.Y_MIN = RADIUS + speed
+        self.Y_MAX = HEIGHT - self.Y_MIN
 
     def draw(self) -> None:
         """Draw itself onto predetermined screen."""
@@ -90,7 +95,7 @@ class Ball:
         """Determine whether the ball is in potential proximity of a wall or brick."""
         rem_x = self.position[0] % WIDTH
         rem_y = self.position[1] % HEIGHT
-        if X_MIN < rem_x < X_MAX and Y_MIN < rem_y < Y_MAX:
+        if self.X_MIN < rem_x < self.X_MAX and self.Y_MIN < rem_y < self.Y_MAX:
             return False
         else:
             return True

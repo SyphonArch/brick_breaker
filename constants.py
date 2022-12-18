@@ -22,8 +22,7 @@ BORDER = 2  # border width of bricks
 DOUBLE_HIT_THRESHOLD = 4
 
 SPEED = 10  # speed of balls
-
-INTERVAL = 40 // SPEED  # interval between balls in frames
+SPACING = 40  # spacing between balls, approximate
 
 ANGLE_MIN = 10
 
@@ -42,12 +41,6 @@ RES_X = WIDTH * DIM_X
 RES_Y = HEIGHT * DIM_Y
 
 R2 = RADIUS ** 2
-
-X_MIN = RADIUS + SPEED
-X_MAX = WIDTH - X_MIN
-
-Y_MIN = RADIUS + SPEED
-Y_MAX = HEIGHT - Y_MIN
 
 RELPOS_XY = np.array([WIDTH, HEIGHT])
 RELPOS_X = np.array([WIDTH, 0])

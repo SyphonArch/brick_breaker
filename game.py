@@ -8,7 +8,15 @@ import pygame
 from pygame.locals import *
 
 
-def main(title="Bricks", breaker_override=None, draw: bool = True, fps_cap=FPS, block=False) -> int:
+def main(title="Bricks", breaker_override=None, draw: bool = True, fps_cap=FPS, block=False,
+         speed_override: int = 0) -> int:
+    if speed_override:
+        speed = speed_override
+    else:
+        speed = SPEED
+
+    interval = SPACING // speed  # interval between balls in frames
+
     if draw:
         # Initialise screen
         pygame.init()
@@ -147,16 +155,16 @@ def main(title="Bricks", breaker_override=None, draw: bool = True, fps_cap=FPS, 
             if mouse_clicked:
                 responsive = False
                 ball_launch_count_down = 0
-                initial_velocity = physics.normalize(mouse_vector, SPEED)
+                initial_velocity = physics.normalize(mouse_vector, speed)
                 new_shoot_pos = None
         else:
             if balls_to_shoot:
                 if ball_launch_count_down == 0:
                     balls_to_shoot -= 1
-                    balls.append(Ball(screen, np.copy(shoot_pos), initial_velocity, grid, points,
-                                      ball_idx * INTERVAL))
+                    balls.append(Ball(screen, np.copy(shoot_pos), initial_velocity, grid, points, ball_idx * interval,
+                                      speed))
                     ball_idx += 1
-                    ball_launch_count_down = INTERVAL
+                    ball_launch_count_down = interval
                 ball_launch_count_down -= 1
             if not balls:
                 # next level

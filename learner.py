@@ -147,8 +147,13 @@ class Breaker:
         """Load weights and biases from 1D array."""
         return self.network.load(chromosome)
 
-    def run(self, title="Breaker run", draw=False, fps_cap=constants.FPS, block=False):
-        return game.main(title=title, breaker_override=self, draw=draw, fps_cap=fps_cap, block=block)
+    def run(self, title="Breaker run", draw=False, fps_cap=constants.FPS, block=False, speed_override=27):
+        """The speed_override value is sensitive, and dependent on other variables.
+
+        If the speed_override is too great, collision detection will fall apart.
+        27 is a carefully chosen (maximum) value."""
+        return game.main(title=title, breaker_override=self, draw=draw, fps_cap=fps_cap, block=block,
+                         speed_override=speed_override)
 
 
 def mutate(chromosome: npt.NDArray[float], mutation_rate: float = 0.1):
@@ -255,12 +260,10 @@ def main():
 
         # Save to file
         print(f"Saving gen-{generation} to file...", end='')
-        start = time.time()
         with open(f"./generations/{population[0].network.shape()}-gen-{generation}.pickle", 'wb') as f:
             genobj = Generation(generation, population, scores)
             pickle.dump(genobj, f)
-        end = time.time()
-        print(f"Done! ({end - start:.1f} s)")
+        print("Done!")
 
         # Showcase the fittest Breaker
         print(f"Best of Generation {generation}: {scores[0][1]:.1f}")
