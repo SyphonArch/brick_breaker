@@ -116,6 +116,7 @@ def main(title="Bricks", breaker_override=None, draw: bool = True, fps_cap=FPS, 
 
             for event in pygame.event.get():
                 if event.type == QUIT:
+                    pygame.quit()
                     return -1
                 if event.type == pygame.MOUSEBUTTONUP:
                     mouse_clicked = True
@@ -187,6 +188,7 @@ def main(title="Bricks", breaker_override=None, draw: bool = True, fps_cap=FPS, 
 
                 # pprint(brick_grid)
                 if game_over:
+                    pygame.quit()
                     return iteration
                 responsive = True
 
