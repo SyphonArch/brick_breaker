@@ -189,9 +189,10 @@ class ProgressBar:
 
     def __repr__(self):
         progress = self.i / self.n
+        percentage = int(progress * 100)
         bar_length = int(progress * self.length)
         return f"[{self.char * bar_length}{' ' * (self.length - bar_length)}] " \
-               f"[{progress * 100:3.0f}%] ({self.i} /{self.n})"
+               f"[{percentage:3}%] ({self.i} /{self.n})"
 
     def start(self):
         print(self.__repr__(), end='')
@@ -289,7 +290,7 @@ def main():
         gen_start += 1
 
     if gen_start == 0:
-        print("Starting fresh!")
+        print("Starting fresh!\n")
         population = [Breaker(TARGET_ARCHITECTURE) for _ in range(POPULATION_SIZE)]
     else:
         with open(f"./generations/{TARGET_ARCHITECTURE}-gen-{gen_start - 1}.pickle", 'rb') as f:
@@ -299,7 +300,7 @@ def main():
         assert gen_start - 1 == genobj.generation
         population = genobj.population
         update_population(population, genobj.sorted_scores)
-        print(f"Continuing from generation {gen_start}!")
+        print(f"Continuing from generation {gen_start}!\n")
 
     for generation in range(gen_start, 10000):
         print(f'----------- Gen {generation} -----------')
