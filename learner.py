@@ -4,6 +4,7 @@ import constants
 import pickle
 import time
 import os
+
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 from multiprocessing import Pool
 import game
@@ -255,6 +256,8 @@ POPULATION_SIZE = 1024
 TEMPLATE_COUNT = 16
 
 TARGET_ARCHITECTURE = (103, 64, 32, 1)
+# TARGET_DIR = os.getcwd()
+TARGET_DIR = '/media/syphon/WinStorage/breaker_generations'
 
 
 def update_population(population: list[Breaker], sorted_scores: list[tuple[int, float]]) -> None:
@@ -284,16 +287,17 @@ def update_population(population: list[Breaker], sorted_scores: list[tuple[int, 
 
 
 def main():
+    print(f"TARGET DIRECTORY: {TARGET_DIR}")
     print(f"TARGET ARCHITECTURE: {TARGET_ARCHITECTURE}")
     gen_start = 0
-    while os.path.exists(f"./generations/{TARGET_ARCHITECTURE}-gen-{gen_start}.pickle"):
+    while os.path.exists(f"{TARGET_DIR}/{TARGET_ARCHITECTURE}-gen-{gen_start}.pickle"):
         gen_start += 1
 
     if gen_start == 0:
         print("Starting fresh!\n")
         population = [Breaker(TARGET_ARCHITECTURE) for _ in range(POPULATION_SIZE)]
     else:
-        with open(f"./generations/{TARGET_ARCHITECTURE}-gen-{gen_start - 1}.pickle", 'rb') as f:
+        with open(f"{TARGET_DIR}/{TARGET_ARCHITECTURE}-gen-{gen_start - 1}.pickle", 'rb') as f:
             genobj = pickle.load(f)
         print(f"Found existing progress: {genobj}")
         assert isinstance(genobj, Generation)
@@ -312,7 +316,7 @@ def main():
 
         # Save to file
         print(f"Saving gen-{generation} to file... ", end='')
-        with open(f"./generations/{population[0].network.shape()}-gen-{generation}.pickle", 'wb') as f:
+        with open(f"{TARGET_DIR}/{population[0].network.shape()}-gen-{generation}.pickle", 'wb') as f:
             genobj = Generation(generation, population, sorted_scores)
             pickle.dump(genobj, f)
         print("Done!")
