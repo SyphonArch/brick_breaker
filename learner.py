@@ -307,7 +307,7 @@ def main():
         start = time.time()
         sorted_scores = batch_simulate(population, breaker_run, repeats=5, discard=1)
         end = time.time()
-        print(f"That took {end - start:.1f} seconds!")
+        print(f"That took {end - start:.1f} seconds!\n")
 
         # Save to file
         print(f"Saving gen-{generation} to file... ", end='')
@@ -320,7 +320,9 @@ def main():
         print(f"Best of Generation {generation}: {sorted_scores[0][1]:.1f}")
         population[sorted_scores[0][0]].run(title=f"gen-{generation}", draw=True, fps_cap=288, block=False)
 
+        print("Updating population...")
         update_population(population, sorted_scores)
+        print()
 
 
 if __name__ == "__main__":
