@@ -172,8 +172,38 @@ def crossover(chromosome1: npt.NDArray[float], chromosome2: npt.NDArray[float]) 
     return result_1, result_2
 
 
+class ProgressBar:
+    def __init__(self, n: int, length: int = 32, char: str = '|'):
+        """Create a ProgressBar.
+
+        n is the number of calls required to reach 100%
+        length is the visual length of the bar, in characters.
+        char is the character used to display the progress bar.
+        """
+        assert len(char) == 1
+        self.n = n
+        self.length = length
+        self.char = char
+        self.i = 0
+
+    def __repr__(self):
+        progress = self.i / self.n
+        bar_length = int(progress * self.length)
+        return f"[{self.char * bar_length}{' ' * (self.length - bar_length)}] " \
+               f"[{progress * 100:3.0f}%] ({self.i} /{self.n})"
+
+    def start(self):
+        print(self.__repr__(), end='')
+
+    def update(self, _):
+        self.i += 1
+        print('\r' + self.__repr__(), end='')
+        if self.i == self.n:
+            print()
+
+
 def batch_simulate(population: list[Breaker], fitness: callable, repeats: int, discard: int,
-                   process_count: None | int = None, ) -> list[tuple[int, int]]:
+                   process_count: None | int = None, ) -> list[tuple[int, float]]:
     """Given population of Breakers and a fitness function, perform parallelized simulation.
 
     Returns a list of tuples in (chromosome index, fitness score) form, sorted in descending order.
@@ -182,12 +212,23 @@ def batch_simulate(population: list[Breaker], fitness: callable, repeats: int, d
     final_scores = []
     if process_count is None:
         process_count = os.cpu_count()
+
+    bar = ProgressBar(len(population) * repeats)
+    bar.start()
+
+    scores_per_chromosome_async = [[] for _ in range(len(population))]
+
     with Pool(process_count) as p:
-        scores = p.map(fitness, population * repeats)
-    for i in range(len(population)):
-        my_scores = sorted([scores[i + len(population) * k] for k in range(repeats)])
-        score = sum(my_scores[discard:-discard]) / (repeats - 2 * discard)
-        final_scores.append((i, score))
+        # Dispatch work
+        for i in range(len(population)):
+            for j in range(repeats):
+                scores_per_chromosome_async[i].append(p.apply_async(fitness, (population[i],), callback=bar.update))
+
+        # Reap results
+        for i in range(len(population)):
+            my_scores = [score_async.get() for score_async in scores_per_chromosome_async[i]]
+            score = sum(my_scores[discard:-discard]) / (repeats - 2 * discard)
+            final_scores.append((i, score))
 
     sorted_scores = sorted(final_scores, key=lambda x: x[1], reverse=True)
     return sorted_scores
@@ -199,7 +240,7 @@ def breaker_run(breaker, *args, **kwargs):
 
 
 class Generation:
-    def __init__(self, generation: int, population: list[Breaker], sorted_scores: list[tuple[int, int]]):
+    def __init__(self, generation: int, population: list[Breaker], sorted_scores: list[tuple[int, float]]):
         self.generation = generation
         self.population = population
         self.sorted_scores = sorted_scores
@@ -214,7 +255,7 @@ TEMPLATE_COUNT = 16
 TARGET_ARCHITECTURE = (103, 64, 32, 1)
 
 
-def update_population(population: list[Breaker], sorted_scores: list[tuple[int, int]]) -> None:
+def update_population(population: list[Breaker], sorted_scores: list[tuple[int, float]]) -> None:
     """Update the chromosomes of the population based on the scores.
 
     The scores must be sorted in descending order!!"""
@@ -261,11 +302,11 @@ def main():
 
     for generation in range(gen_start, 10000):
         print(f'----------- Gen {generation} -----------')
-        print(f"Generation {generation} underway... ", end='')
+        print(f"Generation {generation} underway...")
         start = time.time()
         sorted_scores = batch_simulate(population, breaker_run, repeats=5, discard=1)
         end = time.time()
-        print(f"that took {end - start:.1f} seconds!")
+        print(f"That took {end - start:.1f} seconds!")
 
         # Save to file
         print(f"Saving gen-{generation} to file... ", end='')
