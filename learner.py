@@ -8,6 +8,7 @@ import os
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 from multiprocessing import Pool
 import game
+from learner_settings import *
 
 
 def sigmoid(x: float | npt.NDArray[float]) -> float | npt.NDArray[float]:
@@ -255,10 +256,6 @@ class Generation:
 POPULATION_SIZE = 1024
 TEMPLATE_COUNT = 16
 
-TARGET_ARCHITECTURE = (103, 64, 32, 1)
-# TARGET_DIR = os.getcwd()
-TARGET_DIR = '/media/syphon/WinStorage/breaker_generations'
-
 
 def update_population(population: list[Breaker], sorted_scores: list[tuple[int, float]]) -> None:
     """Update the chromosomes of the population based on the scores.
@@ -287,6 +284,8 @@ def update_population(population: list[Breaker], sorted_scores: list[tuple[int, 
 
 
 def main():
+    process_count = os.cpu_count()
+    print(f"Detected {process_count} CPUs")
     print(f"TARGET DIRECTORY: {TARGET_DIR}")
     print(f"TARGET ARCHITECTURE: {TARGET_ARCHITECTURE}")
     gen_start = 0
@@ -310,7 +309,7 @@ def main():
         print(f'----------- Gen {generation} -----------')
         print(f"Generation {generation} underway...")
         start = time.time()
-        sorted_scores = batch_simulate(population, breaker_run, repeats=5, discard=1)
+        sorted_scores = batch_simulate(population, breaker_run, repeats=5, discard=1, process_count=process_count)
         end = time.time()
         print(f"That took {end - start:.1f} seconds!\n")
 
