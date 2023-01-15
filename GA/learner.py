@@ -119,7 +119,10 @@ class Breaker:
         network = Network.xavier(dimensions)
         self.network = network
 
-    def evaluate(self, grid: list[list[int]], points: list[list[int]], shoot_pos_x: float) -> float:
+    def evaluate(self, gamevar: game.Game) -> float:
+        grid = gamevar.grid
+        points = gamevar.points
+        shoot_pos_x = gamevar.shoot_pos[0]
         """Evaluate given game state and return angle at which to shoot balls."""
         grid_preprocessed = np.log2(np.asarray(grid[:-1]).flatten() + 1)  # DIM_X * (DIM_Y - 1) == 48
         points_preprocessed = np.asarray(points).flatten()  # DIM_X * DIM_Y == 54
