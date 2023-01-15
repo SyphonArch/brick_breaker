@@ -159,10 +159,10 @@ class Breaker:
                          speed_override=speed_override)
 
 
-def mutate(chromosome: npt.NDArray[float], mutation_rate: float = 0.1):
+def mutate(chromosome: npt.NDArray[float], mutation_rate: float = 0.01):
     """Mutate given chromosome and return copy."""
     mutation_mask = np.random.rand(len(chromosome)) < mutation_rate
-    deviation = np.random.normal(loc=0, scale=0.05, size=len(chromosome))
+    deviation = np.random.normal(loc=0, scale=0.1, size=len(chromosome))
     return chromosome + deviation * mutation_mask
 
 
@@ -261,22 +261,23 @@ def update_population(population: list[Breaker], sorted_scores: list[tuple[int, 
     """Update the chromosomes of the population based on the scores.
 
     The scores must be sorted in descending order!!"""
-    selected_indexes = [pair[0] for pair in sorted_scores[:TEMPLATE_COUNT]]
+    # Select the best... plus a few not-so-bests
+    selected_indexes_indexes = [0, 1, 2, 3, 4, 5, 6, 7, 8, 15, 31, 63, 127, 255, 511, 1023]
+    selected_indexes = [sorted_scores[i][0] for i in selected_indexes_indexes]
+    assert len(selected_indexes) == TEMPLATE_COUNT
     template_chromosomes = [population[idx].dump() for idx in selected_indexes]
-    # 16 will be direct copies. 528 will be mutations of the templates.
+    # 16 will be direct copies. 288 will be mutations of the templates.
     chromosome_pool = template_chromosomes[:]
     for idx in range(TEMPLATE_COUNT):
-        for _ in range(33):
+        for _ in range(18):
             chromosome_pool.append(mutate(template_chromosomes[idx]))
-    # 240 will be crossovers between the templates.
+    # 720 will be crossovers between the templates.
     crossovers = []
     for idx1 in range(TEMPLATE_COUNT):
         for idx2 in range(idx1 + 1, TEMPLATE_COUNT):
-            crossovers += list(crossover(template_chromosomes[idx1], template_chromosomes[idx2]))
+            for _ in range(3):
+                crossovers += list(crossover(template_chromosomes[idx1], template_chromosomes[idx2]))
     chromosome_pool += crossovers
-    # 240 will be mutations of the crossed-over templates.
-    for chromosome in crossovers:
-        chromosome_pool.append(mutate(chromosome))
     # This will amount to a total of 1024 chromosomes, for the next generation!
     assert len(chromosome_pool) == POPULATION_SIZE
     for idx, breaker in enumerate(population):
@@ -309,7 +310,7 @@ def main():
         print(f'----------- Gen {generation} -----------')
         print(f"Generation {generation} underway...")
         start = time.time()
-        sorted_scores = batch_simulate(population, breaker_run, repeats=5, discard=1, process_count=process_count)
+        sorted_scores = batch_simulate(population, breaker_run, repeats=5, discard=1, process_count=16)
         end = time.time()
         print(f"That took {end - start:.1f} seconds!\n")
 
@@ -322,7 +323,8 @@ def main():
 
         # Showcase the fittest Breaker
         print(f"Best of Generation {generation}: {sorted_scores[0][1]:.1f}")
-        population[sorted_scores[0][0]].run(title=f"gen-{generation}", draw=True, fps_cap=288, block=False)
+        if DEMO:
+            population[sorted_scores[0][0]].run(title=f"gen-{generation}", draw=True, fps_cap=288, block=False)
 
         print("Updating population...")
         update_population(population, sorted_scores)
