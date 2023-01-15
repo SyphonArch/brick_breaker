@@ -61,3 +61,12 @@ To acquire 100,000 samples, we need 1000 minutes, i.e. 17 hours.
 
 ...I think a speedup is necessary.
 Why don't we try preprocess the collision detections?
+
+Position can be in increments of 0.1 pixels, and the angle in 21600 steps(1 arcmin each).
+There are 6 possible wall configurations.
+((120 / 2) / 0.1) * ((75 / 2) / 0.1) * 21600 * 6 == 29,160,000,000
+If we do a 10 million calculations per second, this will take less than an hour to preprocess.
+
+Will the speedup be significant?
+I think the quickest way to find out... is to just give it try.
+It isn't even hard to implement.
