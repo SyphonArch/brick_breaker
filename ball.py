@@ -53,6 +53,14 @@ class Ball:
             self.early_termination_check()
 
         self.collect_points()
+
+        # To prevent infinite loops
+        if abs(self.velocity[1]) < 0.1:
+            if self.velocity[1] * self.velocity[0] >= 0:
+                self.velocity = physics.rotate(self.velocity, 0.01)
+            else:
+                self.velocity = physics.rotate(self.velocity, -0.01)
+
         if self.needs_collision_checking():
             self.collision_safe_move()
         else:
@@ -228,10 +236,6 @@ class Ball:
 
         logic.decrement_bricks(self.grid, seg_x, seg_y, x_flip, y_flip, dec_left, dec_diag, dec_top)
         real_end, real_vec = logic.get_rel_values(rel_end, rel_vec, x_flip, y_flip)
-
-        # To prevent infinite loops
-        if abs(real_vec[1]) < 0.1:
-            real_vec = physics.rotate(real_vec, 0.09)
 
         self.position = real_end + offset
         self.velocity = real_vec
