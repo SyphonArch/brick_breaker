@@ -178,6 +178,6 @@ def draw_arrow_modified(screen: pygame.Surface, color: tuple[int, int, int],
 
 def clipped_direction(vector: npt.NDArray[float]) -> npt.NDArray[float]:
     """Given a vector, clip the angle it makes with the x-axis."""
-    angle = np.arctan2(vector[1], vector[0]) + np.pi * 2
+    angle = np.arctan2(vector[1], vector[0]) + np.pi  # [0, pi], increasing clockwise
     target_angle = min(ANGLE_MAX_RAD, max(ANGLE_MIN_RAD, angle))
     return physics.rotate(vector, target_angle - angle)

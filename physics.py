@@ -22,7 +22,9 @@ def get_rotation(vec1: npt.NDArray[float], vec2: npt.NDArray[float]) -> float:
 
 
 def rotate(vector: npt.NDArray[float], angle: float) -> npt.NDArray[int]:
-    """Rotate the given vector by the given angle, and return the result."""
+    """Rotate the given vector by the given angle, and return the result.
+
+    The rotation will be clockwise on-screen, as the y-axis is inverted."""
     rot_mat = np.array([[np.cos(angle), -np.sin(angle)], [np.sin(angle), np.cos(angle)]])
     return rot_mat @ vector
 
