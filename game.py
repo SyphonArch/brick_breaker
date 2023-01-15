@@ -129,23 +129,27 @@ class Game:
 
     def tick(self):
         assert not self.game_over
+        if not self.gui_initialized and self.gui:
+            self.gui_initialize()
+
         self.mouse_clicked = False
         if self.gui:
             self.flip()
         else:
-            if self.ai_override is not None:
+            if self.ai_override is None:
                 if not self.message_printed:
                     print("I don't know what you're planning to do with no interface.")
                     print("I guess we could just stare at each other forever.")
                     self.message_printed = True
 
-        for event in pygame.event.get():
-            if event.type == QUIT:
-                pygame.quit()
-                self.game_over = True
-                self.score = -1
-            if event.type == pygame.MOUSEBUTTONUP:
-                self.mouse_clicked = True
+        if self.gui:
+            for event in pygame.event.get():
+                if event.type == QUIT:
+                    pygame.quit()
+                    self.game_over = True
+                    self.score = -1
+                if event.type == pygame.MOUSEBUTTONUP:
+                    self.mouse_clicked = True
 
         if self.ai_override:
             shoot_angle = self.ai_override(self)
@@ -223,7 +227,6 @@ def main(title="Bricks", ai_override: Callable[[Game], float] = None, gui: bool 
         speed = SPEED
 
     gameobj = Game(speed, title, fps_cap, gui, ai_override, block)
-    gameobj.gui_initialize()
 
     # Event loop
     while True:
