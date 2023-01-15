@@ -131,7 +131,7 @@ class Ball:
 
         left, diag, top = logic.get_surroundings(self.grid, seg_x, seg_y, x_flip, y_flip)
 
-        if not left and not diag and not top:
+        if not left and not diag and not top:  # 1 case
             self.position += self.velocity
             return
 
@@ -146,7 +146,7 @@ class Ball:
 
         dec_left, dec_diag, dec_top = False, False, False
 
-        if left and top:  # 2 cases
+        if left and top:  # 2 cases (with diag and without)
             if rel_end[0] <= RADIUS:
                 dec_left = True
                 rel_end = MIRROR_X + rel_end * FLIP_X
@@ -231,7 +231,7 @@ class Ball:
                     dec_diag = True
                     rel_end = MIRROR_Y + rel_end * FLIP_Y
                     rel_vec = rel_vec * FLIP_Y
-        else:  # 1 case - but should have been dealt with earlier
+        else:  # 1 case - where there are no bricks - but should have been dealt with earlier
             raise AssertionError("Won't be seeing this.")
 
         logic.decrement_bricks(self.grid, seg_x, seg_y, x_flip, y_flip, dec_left, dec_diag, dec_top)
