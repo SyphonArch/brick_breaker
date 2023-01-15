@@ -169,7 +169,7 @@ class Game:
                     # grab the first ball to fall
                     if ball.frame_offset < self.first_fall_time:
                         self.first_fall_time = ball.frame_offset
-                        new_shoot_pos = np.array([ball.position[0], RES_Y])
+                        self.new_shoot_pos = np.array([ball.position[0], RES_Y])
         self.balls = live_balls
 
         if self.responsive:
