@@ -327,7 +327,7 @@ def main():
         # Showcase the fittest Breaker
         print(f"Best of Generation {generation}: {sorted_scores[0][1]:.1f}")
         if DEMO:
-            population[sorted_scores[0][0]].run(title=f"gen-{generation}", draw=True, fps_cap=288, block=False)
+            population[sorted_scores[0][0]].run(title=f"gen-{generation}", gui=True, fps_cap=288, block=False)
 
         print("Updating population...")
         update_population(population, sorted_scores)
