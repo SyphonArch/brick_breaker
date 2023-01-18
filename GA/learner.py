@@ -313,7 +313,7 @@ def main():
         print(f'----------- Gen {generation} -----------')
         print(f"Generation {generation} underway...")
         start = time.time()
-        sorted_scores = batch_simulate(population, breaker_run, repeats=5, discard=1, process_count=16)
+        sorted_scores = batch_simulate(population, breaker_run, repeats=5, discard=1, process_count=process_count)
         end = time.time()
         print(f"That took {end - start:.1f} seconds!\n")
 
