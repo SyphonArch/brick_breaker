@@ -157,14 +157,6 @@ class Game:
                 if event.type == pygame.MOUSEBUTTONUP:
                     self.mouse_clicked = True
 
-        if self.ai_override:
-            shoot_angle = self.ai_override(self)
-            self.mouse_vector = physics.rotate(np.array([ARROW_MAX_LENGTH, 0]), shoot_angle)
-            self.mouse_vector = logic.clipped_direction(self.mouse_vector)
-            # If block == True, then a mouse click needs to happen to unblock AI.
-            if not self.block or self.mouse_clicked:
-                self.mouse_clicked = True
-
         for ball in self.balls:
             self.ball_count += ball.collected_points
             ball.collected_points = 0
@@ -184,6 +176,13 @@ class Game:
         self.balls = live_balls
 
         if self.responsive:
+            if self.ai_override:
+                shoot_angle = self.ai_override(self)
+                self.mouse_vector = physics.rotate(np.array([ARROW_MAX_LENGTH, 0]), shoot_angle)
+                self.mouse_vector = logic.clipped_direction(self.mouse_vector)
+                # If block == True, then a mouse click needs to happen to unblock AI.
+                if not self.block or self.mouse_clicked:
+                    self.mouse_clicked = True
             if self.mouse_clicked:
                 self.responsive = False
                 self.ball_launch_count_down = 0
