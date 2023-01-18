@@ -5,6 +5,7 @@ from constants import *
 from ball import Ball
 import logic
 import physics
+import numpy as np
 
 from typing import Callable
 
@@ -26,8 +27,11 @@ class Game:
         self.speed = speed
         self.interval = SPACING // self.speed  # interval between balls in frames
 
-        self.grid = [[0] * DIM_X for _ in range(DIM_Y)]
-        self.points = [[0] * DIM_X for _ in range(DIM_Y)]
+        self.grid = np.zeros((DIM_Y, DIM_X), dtype=int)
+        self.points = np.zeros((DIM_Y, DIM_X), dtype=int)
+
+        self.history_before_gen = [np.copy(self.grid)]
+
         self.balls = []
         self.parked_balls = []
         self.initial_velocity = None
@@ -54,6 +58,8 @@ class Game:
 
         logic.rand_gen(self.grid, self.points, self.iteration)
         logic.shift_down(self.grid, self.points)
+
+        self.history_after_gen = [np.copy(self.grid)]
 
         self.message_printed = False
 
@@ -196,8 +202,14 @@ class Game:
             if not self.balls:
                 # next level
                 self.iteration += 1
+
+                self.history_before_gen.append(np.copy(self.grid))
+
                 logic.rand_gen(self.grid, self.points, self.iteration)
                 game_over, taken_points = logic.shift_down(self.grid, self.points)
+
+                self.history_after_gen.append(np.copy(self.grid))
+
                 self.ball_count += taken_points
                 self.balls_to_shoot = self.ball_count
                 self.ball_idx = 0
@@ -219,9 +231,20 @@ class Game:
                     self.score = self.iteration
                 self.responsive = True
 
+    def fast_forward(self):
+        """Given an input-waiting state of the game, let the AI shoot,
+        then fast-forward until the game needs input again."""
+        assert self.responsive
+        assert self.ai_override is not None
+        assert not self.block
+        self.tick()
+        assert not self.responsive
+        while not self.responsive:
+            self.tick()
+
 
 def main(title="Bricks", ai_override: Callable[[Game], float] = None, gui: bool = True, fps_cap=FPS, block=False,
-         speed_override: bool = False) -> int:
+         speed_override: bool = False) -> Game:
     if speed_override:
         speed = SPEED_LIMIT
     else:
@@ -233,10 +256,10 @@ def main(title="Bricks", ai_override: Callable[[Game], float] = None, gui: bool 
     while True:
         gameobj.tick()
         if gameobj.game_over:
-            return gameobj.score
+            return gameobj
 
 
 if __name__ == '__main__':
-    score = main()
+    gameobj = main()
     print('GAME OVER!')
-    print('Score = {}'.format(score))
+    print('Score = {}'.format(gameobj.score))

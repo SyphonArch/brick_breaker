@@ -155,8 +155,9 @@ class Breaker:
 
     def run(self, title="Breaker run", gui=False, fps_cap=constants.FPS, block=False, speed_override=True):
         """Run the game on the Breaker AI, and get a score!"""
-        return game.main(title=title, ai_override=self, gui=gui, fps_cap=fps_cap, block=block,
-                         speed_override=speed_override)
+        gameobj = game.main(title=title, ai_override=self, gui=gui, fps_cap=fps_cap, block=block,
+                            speed_override=speed_override)
+        return gameobj.score
 
 
 def mutate(chromosome: npt.NDArray[float], mutation_rate: float = 0.01):

@@ -6,7 +6,7 @@ from random import shuffle, randint, choice
 import pygame
 
 
-def safe_access_grid(grid: list[list[int]], seg_x: int, seg_y: int, decrement: bool = False) -> int:
+def safe_access_grid(grid: npt.NDArray[int], seg_x: int, seg_y: int, decrement: bool = False) -> int:
     """Safely access given segment of given grid.
 
     Returns the value at the segment if valid segment is specified.
@@ -25,7 +25,8 @@ def safe_access_grid(grid: list[list[int]], seg_x: int, seg_y: int, decrement: b
             return 0
 
 
-def get_surroundings(grid: list[list[int]], seg_x: int, seg_y: int, x_flip: bool, y_flip: bool) -> tuple[int, int, int]:
+def get_surroundings(grid: npt.NDArray[int], seg_x: int, seg_y: int, x_flip: bool, y_flip: bool)\
+        -> tuple[int, int, int]:
     """Check the left, top, and diagonal segments and return grid values.
 
     X and Y axes may be flipped."""
@@ -39,7 +40,7 @@ def get_surroundings(grid: list[list[int]], seg_x: int, seg_y: int, x_flip: bool
     return left, diag, top
 
 
-def decrement_bricks(grid: list[list[int]], seg_x: int, seg_y: int, x_flip: bool, y_flip: bool,
+def decrement_bricks(grid: npt.NDArray[int], seg_x: int, seg_y: int, x_flip: bool, y_flip: bool,
                      dec_left: bool, dec_diag: bool, dec_top: bool) -> None:
     """Decrement the left, top, and diagonal segments by 1 or 0."""
     dx = 1 if x_flip else -1
@@ -85,7 +86,7 @@ def gridpos_to_coordinates(i: int, j: int) -> tuple[int, int]:
     return x, y
 
 
-def draw_bricks(screen: pygame.Surface, grid: list[list[int]], font: pygame.font.Font) -> None:
+def draw_bricks(screen: pygame.Surface, grid: npt.NDArray[int], font: pygame.font.Font) -> None:
     """Draw the bricks onto the screen."""
     for i in range(len(grid)):
         line = grid[i]
@@ -100,7 +101,7 @@ def draw_bricks(screen: pygame.Surface, grid: list[list[int]], font: pygame.font
                 screen.blit(value_text, text_rect)
 
 
-def draw_points(screen: pygame.Surface, points: list[list[int]]) -> None:
+def draw_points(screen: pygame.Surface, points: npt.NDArray[int]) -> None:
     """Draw the points onto the screen."""
     for i in range(len(points)):
         line = points[i]
@@ -110,7 +111,7 @@ def draw_points(screen: pygame.Surface, points: list[list[int]]) -> None:
                 pygame.draw.circle(screen, GREEN, (x + WIDTH // 2, y + HEIGHT // 2), RADIUS)
 
 
-def rand_gen(grid: list[list[int]], points: list[list[int]], n: int) -> None:
+def rand_gen(grid: npt.NDArray[int], points: npt.NDArray[int], n: int) -> None:
     """Generate the bricks and points, given parameter n."""
     max_bricks = min(n // 10 + 2, DIM_X - 1)
     min_bricks = max(max_bricks - 3, 1)
@@ -127,7 +128,7 @@ def rand_gen(grid: list[list[int]], points: list[list[int]], n: int) -> None:
     points[0][point_idx] = 1
 
 
-def shift_down(grid: list[list[int]], points: list[list[int]]) -> tuple[bool, int]:
+def shift_down(grid: npt.NDArray[int], points: npt.NDArray[int]) -> tuple[bool, int]:
     """Shift down the grid.
 
     Returns a tuple, where the first value is whether a brick has reached the floor,
