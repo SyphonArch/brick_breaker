@@ -40,6 +40,9 @@ assert (RADIUS + SPEED) * 2 < WIDTH
 RES_X = WIDTH * DIM_X
 RES_Y = HEIGHT * DIM_Y
 
+SPEED_LIMIT = min(x // 2 - RADIUS for x in (WIDTH, HEIGHT))
+assert SPEED <= SPEED_LIMIT
+
 R2 = RADIUS ** 2
 
 RELPOS_XY = np.array([WIDTH, HEIGHT])

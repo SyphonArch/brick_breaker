@@ -153,11 +153,8 @@ class Breaker:
         """Load weights and biases from 1D array."""
         return self.network.load(chromosome)
 
-    def run(self, title="Breaker run", gui=False, fps_cap=constants.FPS, block=False, speed_override=27):
-        """The speed_override value is sensitive, and dependent on other variables.
-
-        If the speed_override is too great, collision detection will fall apart.
-        27 is a carefully chosen (maximum) value."""
+    def run(self, title="Breaker run", gui=False, fps_cap=constants.FPS, block=False, speed_override=True):
+        """Run the game on the Breaker AI, and get a score!"""
         return game.main(title=title, ai_override=self, gui=gui, fps_cap=fps_cap, block=block,
                          speed_override=speed_override)
 

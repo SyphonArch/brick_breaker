@@ -221,9 +221,9 @@ class Game:
 
 
 def main(title="Bricks", ai_override: Callable[[Game], float] = None, gui: bool = True, fps_cap=FPS, block=False,
-         speed_override: int = 0) -> int:
+         speed_override: bool = False) -> int:
     if speed_override:
-        speed = speed_override
+        speed = SPEED_LIMIT
     else:
         speed = SPEED
 
