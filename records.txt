@@ -39,15 +39,15 @@ Testing scaling with multiprocessing
 # New calculations for bootstrapping-based AI
 
 From the previous AI attempt using GA, we have:
-    AVG score 70, 5120 iterations --> 220 seconds
-    220 / 5120 == 43 ms / iteration
-    43 / 70 == 0.6 ms / iteration
+    AVG score 70, 5120 iterations --> 230 seconds
+    230 / 5120 == 45 ms / iteration
+    45 / 70 == 0.64 ms / round
 
 We can estimate that a single firing round takes about 0.6 ms on 32 cores.
-That translates to about 20 ms on one core.
+That translates to about 8 ms on one core. (assuming x12 scaling as observed earlier)
 
 If we divide the angle of fire into 1000 incremental steps,
-It will take 20 seconds to simulate all of them.
+It will take 8 seconds to simulate all of them.
 Yikes.
 
 Good thing we have 32 cores, eh?
@@ -70,3 +70,8 @@ If we do a 10 million calculations per second, this will take less than an hour 
 Will the speedup be significant?
 I think the quickest way to find out... is to just give it try.
 It isn't even hard to implement.
+
+I just tried timing how long the collision handling logic takes.
+It was responsible for 15 seconds out of the 230 for each iteration of GA.
+No point in the optimization mentioned earlier.
+Abort!
