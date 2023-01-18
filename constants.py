@@ -55,5 +55,5 @@ MIRROR_X = np.array([RADIUS * 2, 0])
 MIRROR_Y = np.array([0, RADIUS * 2])
 
 ANGLE_MAX = 180 - ANGLE_MIN
-ANGLE_MIN_RAD = ANGLE_MIN / 180 * np.pi
-ANGLE_MAX_RAD = ANGLE_MAX / 180 * np.pi
+ANGLE_MIN_RAD = (180 + ANGLE_MIN) / 180 * np.pi
+ANGLE_MAX_RAD = (180 + ANGLE_MAX) / 180 * np.pi

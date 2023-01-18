@@ -154,6 +154,7 @@ class Game:
         if self.ai_override:
             shoot_angle = self.ai_override(self)
             self.mouse_vector = physics.rotate(np.array([ARROW_MAX_LENGTH, 0]), shoot_angle)
+            self.mouse_vector = logic.clipped_direction(self.mouse_vector)
             # If block == True, then a mouse click needs to happen to unblock AI.
             if not self.block or self.mouse_clicked:
                 self.mouse_clicked = True
