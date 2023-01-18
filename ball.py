@@ -142,6 +142,20 @@ class Ball:
         rem_pos = self.position - offset
 
         rel_pos, rel_vec = logic.get_rel_values(rem_pos, self.velocity, x_flip, y_flip)
+
+        dec_left, dec_diag, dec_top, rel_end, rel_vec = Ball.collision_calc(left, diag, top, rel_pos, rel_vec)
+
+        logic.decrement_bricks(self.grid, seg_x, seg_y, x_flip, y_flip, dec_left, dec_diag, dec_top)
+        real_end, real_vec = logic.get_rel_values(rel_end, rel_vec, x_flip, y_flip)
+
+        self.position = real_end + offset
+        self.velocity = real_vec
+
+    @staticmethod
+    def collision_calc(left, diag, top, rel_pos, rel_vec):
+        """Given a standardised collision situation, return the post-frame results.
+
+        This method assumes that the ball is in the top left corner of its surrounding box."""
         rel_end = rel_pos + rel_vec
 
         dec_left, dec_diag, dec_top = False, False, False
@@ -234,11 +248,7 @@ class Ball:
         else:  # 1 case - where there are no bricks - but should have been dealt with earlier
             raise AssertionError("Won't be seeing this.")
 
-        logic.decrement_bricks(self.grid, seg_x, seg_y, x_flip, y_flip, dec_left, dec_diag, dec_top)
-        real_end, real_vec = logic.get_rel_values(rel_end, rel_vec, x_flip, y_flip)
-
-        self.position = real_end + offset
-        self.velocity = real_vec
+        return dec_left, dec_diag, dec_top, rel_end, rel_vec
 
     @staticmethod
     def get_circle_intersections(start: npt.NDArray[float], vector: npt.NDArray[float]) \
@@ -252,15 +262,15 @@ class Ball:
             b = start[1] - a * start[0]
             # y = ax + b
             # x ^ 2 + y ^ 2 = RADIUS ^ 2
-            A = a ** 2 + 1
-            B = 2 * a * b
-            C = b ** 2 - R2
-            D = B ** 2 - 4 * A * C
-            if D <= 0:
+            alpha = a ** 2 + 1
+            beta = 2 * a * b
+            charlie = b ** 2 - R2
+            delta = beta ** 2 - 4 * alpha * charlie
+            if delta <= 0:
                 return []
             else:
-                x1 = (- B - D ** 0.5) / (2 * A)
-                x2 = (- B + D ** 0.5) / (2 * A)
+                x1 = (- beta - delta ** 0.5) / (2 * alpha)
+                x2 = (- beta + delta ** 0.5) / (2 * alpha)
                 y1 = a * x1 + b
                 y2 = a * x2 + b
         elif vector[0]:
