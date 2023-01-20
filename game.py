@@ -255,17 +255,17 @@ def main(title="Bricks", ai_override: Callable[[Game], float] = None, gui: bool 
     else:
         speed = SPEED
 
-    gameobj = Game(speed, title, fps_cap, gui, ai_override, block)
+    gamevar = Game(speed, title, fps_cap, gui, ai_override, block)
 
-    history = [(None, gameobj.grid.copy())]
+    history = [(None, gamevar.grid.copy())]
 
     # Event loop
     while True:
-        gameobj.step()  # This is not one frame. It is one round of input. (a.k.a. step)
-        history.append((gameobj.grid_before_gen, gameobj.grid.copy()))
-        if gameobj.game_over:
-            gameobj.history = history
-            return gameobj
+        gamevar.step()  # This is not one frame. It is one round of input. (a.k.a. step)
+        history.append((gamevar.grid_before_gen, gamevar.grid.copy()))
+        if gamevar.game_over:
+            gamevar.history = history
+            return gamevar
 
 
 if __name__ == '__main__':
