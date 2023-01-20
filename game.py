@@ -227,14 +227,14 @@ class Game:
                     self.score = self.iteration
                 self.responsive = True
 
-    def fast_forward(self):
-        """Given an input-waiting state of the game, let the AI shoot,
-        then fast-forward until the game needs input again."""
+    def step(self):
+        """Given an input-waiting state of the game, wait for input,
+        then tick until the game needs input again."""
         assert self.responsive
-        assert self.ai_override is not None
-        assert not self.block
-        self.tick(early_termination_override=True)  # This should fire the round
-        assert not self.responsive
+        # Wait for round to be fired.
+        while self.responsive:
+            self.tick(early_termination_override=True)
+        # Wait for all balls to fall.
         while not self.responsive:
             self.tick(early_termination_override=True)
 
@@ -250,7 +250,7 @@ def main(title="Bricks", ai_override: Callable[[Game], float] = None, gui: bool 
 
     # Event loop
     while True:
-        gameobj.tick()
+        gameobj.step()
         if gameobj.game_over:
             return gameobj
 
