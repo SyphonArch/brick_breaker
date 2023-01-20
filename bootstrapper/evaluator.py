@@ -2,6 +2,13 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as torchf
 import torch.optim as optim
+import game
+import numpy.typing as npt
+import numpy as np
+
+
+def extract(gamevar: game.Game) -> npt.NDArray[float]:
+    return np.append(gamevar.grid_before_gen[1:-1].flatten(), gamevar.ball_count)
 
 
 class Evaluator(nn.Module):
@@ -31,4 +38,3 @@ class Evaluator(nn.Module):
         x = torchf.relu(self.drop2(self.lin2(x)))
         x = torchf.relu(self.lin3(x))
         return x
-

@@ -163,10 +163,11 @@ class Game:
                     self.mouse_clicked = True
 
         if self.responsive:
-            if self.ai_override:
-                shoot_angle = self.ai_override(self)
-                self.mouse_vector = physics.rotate(np.array([ARROW_MAX_LENGTH, 0]), shoot_angle)
-                self.mouse_vector = logic.clipped_direction(self.mouse_vector)
+            if self.ai_override is not None:
+                if not any(self.mouse_vector):  # If AI has not been called yet, calculate mouse_vector
+                    shoot_angle = self.ai_override(self)
+                    self.mouse_vector = physics.rotate(np.array([ARROW_MAX_LENGTH, 0]), shoot_angle)
+                    self.mouse_vector = logic.clipped_direction(self.mouse_vector)
                 # If block == True, then a mouse click needs to happen to unblock AI.
                 if not self.block or self.mouse_clicked:
                     self.mouse_clicked = True
@@ -224,6 +225,7 @@ class Game:
                 self.first_fall_time = float('inf')
                 self.shoot_pos = self.new_shoot_pos
                 self.new_shoot_pos = None
+                self.mouse_vector = np.zeros(2)
 
                 # pprint(brick_grid)
                 if game_over:
