@@ -30,7 +30,7 @@ class Game:
         self.grid = np.zeros((DIM_Y, DIM_X), dtype=int)
         self.points = np.zeros((DIM_Y, DIM_X), dtype=int)
 
-        self.history_before_gen = [np.copy(self.grid)]
+        self.grid_before_gen = None
 
         self.balls = []
         self.parked_balls = []
@@ -58,8 +58,6 @@ class Game:
 
         logic.rand_gen(self.grid, self.points, self.iteration)
         logic.shift_down(self.grid, self.points)
-
-        self.history_after_gen = [np.copy(self.grid)]
 
         self.message_printed = False
 
@@ -133,8 +131,9 @@ class Game:
 
         pygame.display.flip()
 
-    def tick(self):
+    def tick(self, early_termination_override=False):
         assert not self.game_over
+        early_terminate = EARLY_TERMINATION or early_termination_override
         if not self.gui_initialized and self.gui:
             self.gui_initialize()
 
@@ -166,7 +165,7 @@ class Game:
             if not ball.terminated:
                 live_balls.append(ball)
             else:
-                if EARLY_TERMINATION:
+                if early_terminate:
                     self.parked_balls.append(ball)
                 else:
                     # grab the first ball to fall
@@ -193,8 +192,8 @@ class Game:
                 if self.ball_launch_count_down == 0:
                     self.balls_to_shoot -= 1
                     self.balls.append(
-                        Ball(self.screen, np.copy(self.shoot_pos), self.initial_velocity, self.grid, self.points,
-                             self.ball_idx * self.interval, self.speed))
+                        Ball(self.screen, self.shoot_pos, self.initial_velocity, self.grid, self.points,
+                             self.ball_idx * self.interval, self.speed, early_terminate))
                     self.ball_idx += 1
                     self.ball_launch_count_down = self.interval
                 self.ball_launch_count_down -= 1
@@ -202,18 +201,16 @@ class Game:
                 # next level
                 self.iteration += 1
 
-                self.history_before_gen.append(np.copy(self.grid))
+                self.grid_before_gen = self.grid.copy()
 
                 logic.rand_gen(self.grid, self.points, self.iteration)
                 game_over, taken_points = logic.shift_down(self.grid, self.points)
-
-                self.history_after_gen.append(np.copy(self.grid))
 
                 self.ball_count += taken_points
                 self.balls_to_shoot = self.ball_count
                 self.ball_idx = 0
 
-                if EARLY_TERMINATION:
+                if early_terminate:
                     self.parked_balls.sort(key=lambda b: b.frame_offset)
                     first_ball_to_fall = self.parked_balls[0]
                     self.new_shoot_pos = np.array([first_ball_to_fall.position[0], RES_Y])
@@ -236,10 +233,10 @@ class Game:
         assert self.responsive
         assert self.ai_override is not None
         assert not self.block
-        self.tick()
+        self.tick(early_termination_override=True)  # This should fire the round
         assert not self.responsive
         while not self.responsive:
-            self.tick()
+            self.tick(early_termination_override=True)
 
 
 def main(title="Bricks", ai_override: Callable[[Game], float] = None, gui: bool = True, fps_cap=FPS, block=False,

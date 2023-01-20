@@ -9,14 +9,15 @@ import numpy.typing as npt
 
 class Ball:
     def __init__(self, screen: pygame.Surface, position: npt.NDArray[float], velocity: npt.NDArray[float],
-                 grid: npt.NDArray[int], points: npt.NDArray[int], frame_offset: int | float, speed: int):
+                 grid: npt.NDArray[int], points: npt.NDArray[int], frame_offset: int | float, speed: int,
+                 early_termination: bool):
         """Initializes Ball.
 
         Note that frame_offset should be set to the number of frames that have passed since the first ball of the round
         has been launched."""
         self.screen = screen
-        self.position = np.asarray(position, float)
-        self.velocity = np.asarray(velocity, float)
+        self.position = np.array(position, float)
+        self.velocity = np.array(velocity, float)
         self.grid = grid
         self.points = points
         self.collected_points = 0
@@ -27,6 +28,8 @@ class Ball:
         self.X_MAX = WIDTH - self.X_MIN
         self.Y_MIN = RADIUS + speed
         self.Y_MAX = HEIGHT - self.Y_MIN
+
+        self.early_termination = early_termination
 
     def draw(self) -> None:
         """Draw itself onto predetermined screen."""
@@ -49,7 +52,7 @@ class Ball:
             print("Attempted to move a terminated ball!")
             return
 
-        if EARLY_TERMINATION:
+        if self.early_termination:
             self.early_termination_check()
 
         self.collect_points()
