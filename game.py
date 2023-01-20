@@ -12,6 +12,13 @@ from typing import Callable
 import pygame
 from pygame.locals import *
 
+pygame_font = None
+pygame_smallfont = None
+pygame_screen = None
+pygame_background = None
+pygame_clock = None
+gui_initialized = False
+
 
 class Game:
     def __init__(self, speed: int, title: str = "Bricks", fps_cap=FPS, gui: bool = True,
@@ -19,8 +26,6 @@ class Game:
         self.gui = gui
         self.ai_override = ai_override
         self.block = block
-
-        self.gui_initialized = False
 
         self.fps_cap = fps_cap
 
@@ -61,61 +66,61 @@ class Game:
 
         self.message_printed = False
 
-        self.font = None
-        self.smallfont = None
-        self.screen = None
         self.title = title
-        self.background = None
-        self.clock = None
 
         self.game_over = False
         self.score = 0
 
+        # This is edited from outside the class, for now.
+        # Should only be added after game termination, so that simulation doesn't waste time copying the history.
+        self.history = None
+
     def gui_initialize(self):
+        global pygame_font, pygame_smallfont, pygame_screen, pygame_background, pygame_clock, gui_initialized
         # Initialise screen
         pygame.init()
-        self.font = pygame.font.SysFont('Arial', 25)
-        self.smallfont = pygame.font.SysFont('Arial', 20)
-        self.screen = pygame.display.set_mode((RES_X, RES_Y))
+        pygame_font = pygame.font.SysFont('Arial', 25)
+        pygame_smallfont = pygame.font.SysFont('Arial', 20)
+        pygame_screen = pygame.display.set_mode((RES_X, RES_Y))
         pygame.display.set_caption(self.title)
 
         # Fill background
-        self.background = pygame.Surface(self.screen.get_size())
-        self.background.fill(BLACK)
+        pygame_background = pygame.Surface(pygame_screen.get_size())
+        pygame_background.fill(BLACK)
 
         # Blit everything to the screen
-        self.screen.blit(self.background, (0, 0))
+        pygame_screen.blit(pygame_background, (0, 0))
         pygame.display.flip()
 
-        self.clock = pygame.time.Clock()
+        pygame_clock = pygame.time.Clock()
 
-        self.gui_initialized = True
+        gui_initialized = True
 
     def flip(self):
-        assert self.gui_initialized
-        self.clock.tick(self.fps_cap)
+        assert gui_initialized
+        pygame_clock.tick(self.fps_cap)
 
-        self.screen.blit(self.background, (0, 0))
-        logic.draw_bricks(self.screen, self.grid, self.font)
-        logic.draw_points(self.screen, self.points)
-        pygame.draw.circle(self.screen, BALL_COLOR, self.shoot_pos, RADIUS)
+        pygame_screen.blit(pygame_background, (0, 0))
+        logic.draw_bricks(pygame_screen, self.grid, pygame_font)
+        logic.draw_points(pygame_screen, self.points)
+        pygame.draw.circle(pygame_screen, BALL_COLOR, self.shoot_pos, RADIUS)
 
         if self.new_shoot_pos is not None:
-            pygame.draw.circle(self.screen, WHITE, self.new_shoot_pos, RADIUS)
+            pygame.draw.circle(pygame_screen, WHITE, self.new_shoot_pos, RADIUS)
 
         for ball in self.balls:
             ball.draw()
 
         # Top banner
-        refresh_rate_render = self.font.render(str(int(self.clock.get_fps())) + ' Hz', True, RED)
+        refresh_rate_render = pygame_font.render(str(int(pygame_clock.get_fps())) + ' Hz', True, RED)
         refresh_rate_rect = refresh_rate_render.get_rect()
         refresh_rate_rect.right = RES_X - 10
 
-        self.screen.blit(refresh_rate_render, refresh_rate_rect)
-        self.screen.blit(self.font.render('LEVEL: ' + str(self.iteration), True, WHITE), (10, 0))
-        self.screen.blit(self.font.render('BALLS: ' + str(self.ball_count), True, WHITE), (150, 0))
-        self.screen.blit(self.smallfont.render('X' + str(self.balls_to_shoot), True, WHITE),
-                         (self.shoot_pos[0] + 20, RES_Y - 20))
+        pygame_screen.blit(refresh_rate_render, refresh_rate_rect)
+        pygame_screen.blit(pygame_font.render('LEVEL: ' + str(self.iteration), True, WHITE), (10, 0))
+        pygame_screen.blit(pygame_font.render('BALLS: ' + str(self.ball_count), True, WHITE), (150, 0))
+        pygame_screen.blit(pygame_smallfont.render('X' + str(self.balls_to_shoot), True, WHITE),
+                           (self.shoot_pos[0] + 20, RES_Y - 20))
 
         if self.ai_override is None:
             mouse_pos = pygame.mouse.get_pos()
@@ -127,14 +132,14 @@ class Game:
                 arrow_color = BALL_COLOR
             else:
                 arrow_color = RED
-            logic.draw_arrow_modified(self.screen, arrow_color, self.shoot_pos, self.mouse_vector, ARROW_MAX_LENGTH)
+            logic.draw_arrow_modified(pygame_screen, arrow_color, self.shoot_pos, self.mouse_vector, ARROW_MAX_LENGTH)
 
         pygame.display.flip()
 
     def tick(self, early_termination_override=False):
         assert not self.game_over
         early_terminate = EARLY_TERMINATION or early_termination_override
-        if not self.gui_initialized and self.gui:
+        if not gui_initialized and self.gui:
             self.gui_initialize()
 
         self.mouse_clicked = False
@@ -153,26 +158,9 @@ class Game:
                     pygame.quit()
                     self.game_over = True
                     self.score = -1
+                    return
                 if event.type == pygame.MOUSEBUTTONUP:
                     self.mouse_clicked = True
-
-        for ball in self.balls:
-            self.ball_count += ball.collected_points
-            ball.collected_points = 0
-            ball.tick()
-        live_balls = []
-        for ball in self.balls:
-            if not ball.terminated:
-                live_balls.append(ball)
-            else:
-                if early_terminate:
-                    self.parked_balls.append(ball)
-                else:
-                    # grab the first ball to fall
-                    if ball.frame_offset < self.first_fall_time:
-                        self.first_fall_time = ball.frame_offset
-                        self.new_shoot_pos = np.array([ball.position[0], RES_Y])
-        self.balls = live_balls
 
         if self.responsive:
             if self.ai_override:
@@ -188,11 +176,28 @@ class Game:
                 self.initial_velocity = physics.normalize(self.mouse_vector, self.speed)
                 self.new_shoot_pos = None
         else:
+            for ball in self.balls:
+                self.ball_count += ball.collected_points
+                ball.collected_points = 0
+                ball.tick()
+            live_balls = []
+            for ball in self.balls:
+                if not ball.terminated:
+                    live_balls.append(ball)
+                else:
+                    if early_terminate:
+                        self.parked_balls.append(ball)
+                    else:
+                        # grab the first ball to fall
+                        if ball.frame_offset < self.first_fall_time:
+                            self.first_fall_time = ball.frame_offset
+                            self.new_shoot_pos = np.array([ball.position[0], RES_Y])
+            self.balls = live_balls
             if self.balls_to_shoot:
                 if self.ball_launch_count_down == 0:
                     self.balls_to_shoot -= 1
                     self.balls.append(
-                        Ball(self.screen, self.shoot_pos, self.initial_velocity, self.grid, self.points,
+                        Ball(pygame_screen, self.shoot_pos, self.initial_velocity, self.grid, self.points,
                              self.ball_idx * self.interval, self.speed, early_terminate))
                     self.ball_idx += 1
                     self.ball_launch_count_down = self.interval
@@ -234,9 +239,13 @@ class Game:
         # Wait for round to be fired.
         while self.responsive:
             self.tick(early_termination_override=True)
+            if self.game_over:
+                return
         # Wait for all balls to fall.
         while not self.responsive:
             self.tick(early_termination_override=True)
+            if self.game_over:
+                return
 
 
 def main(title="Bricks", ai_override: Callable[[Game], float] = None, gui: bool = True, fps_cap=FPS, block=False,
@@ -248,10 +257,14 @@ def main(title="Bricks", ai_override: Callable[[Game], float] = None, gui: bool 
 
     gameobj = Game(speed, title, fps_cap, gui, ai_override, block)
 
+    history = [(None, gameobj.grid.copy())]
+
     # Event loop
     while True:
-        gameobj.step()
+        gameobj.step()  # This is not one frame. It is one round of input. (a.k.a. step)
+        history.append((gameobj.grid_before_gen, gameobj.grid.copy()))
         if gameobj.game_over:
+            gameobj.history = history
             return gameobj
 
 
