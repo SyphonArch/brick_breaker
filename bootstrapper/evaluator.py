@@ -23,7 +23,8 @@ def extract(gamevar: game.Game) -> npt.NDArray[float]:
         if resolved_symmetry:
             break
 
-    return np.append(gamevar.grid_before_gen[1:-1].flatten(), gamevar.ball_count)
+    grid_regularized = np.log(grid_segment + 1)
+    return np.append(grid_regularized.flatten(), gamevar.ball_count)
 
 
 class Evaluator(nn.Module):

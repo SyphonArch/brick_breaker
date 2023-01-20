@@ -83,3 +83,5 @@ because the AI was being run even when the game wasn't in its responsive state.
 
 Resolving this brought the GA runtime from 230 seconds down to 168 seconds.
 This is a 27% gain in speed. Not bad.
+
+TODO: Create explorer-evaluator loop in bootstrapper. Perhaps start by running explorer only.

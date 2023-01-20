@@ -23,7 +23,7 @@ def step_game(gamevar_angle):
     return evaluator.extract(gamevar)
 
 
-explorer = None
+explorer = None  # This is needed so that the local function 'explorer' can be pickled for multiprocessing
 
 
 def create_explorer(network):
@@ -42,5 +42,5 @@ def create_explorer(network):
 
 ev = evaluator.Evaluator()
 ev.eval()
-gameobj = game.main("Bricks", create_explorer(ev), block=False, fps_cap=500)
+gameobj = game.main("Bricks", create_explorer(ev), block=False, fps_cap=500, gui=True)
 print(gameobj.score)
