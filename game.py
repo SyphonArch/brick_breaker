@@ -229,7 +229,8 @@ class Game:
 
                 # pprint(brick_grid)
                 if game_over:
-                    pygame.quit()
+                    if self.gui:
+                        pygame.quit()
                     self.game_over = True
                     self.score = self.iteration
                 self.responsive = True

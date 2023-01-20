@@ -8,6 +8,21 @@ import numpy as np
 
 
 def extract(gamevar: game.Game) -> npt.NDArray[float]:
+    grid_segment = gamevar.grid_before_gen[1:-1]
+
+    # The block below resolves symmetric matrices by converting them to the lexicographically larger one
+    resolved_symmetry = False
+    for i in range(len(grid_segment)):
+        for j in range(len(grid_segment[0]) // 2):
+            k = len(grid_segment[0]) - j - 1
+            if grid_segment[i][j] != grid_segment[i][k]:
+                resolved_symmetry = True
+                if grid_segment[i][j] < grid_segment[i][k]:
+                    grid_segment = np.flip(grid_segment, 1)
+                break
+        if resolved_symmetry:
+            break
+
     return np.append(gamevar.grid_before_gen[1:-1].flatten(), gamevar.ball_count)
 
 

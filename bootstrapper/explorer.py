@@ -42,4 +42,5 @@ def create_explorer(network):
 
 ev = evaluator.Evaluator()
 ev.eval()
-game.main("Bricks", create_explorer(ev), block=True)
+gameobj = game.main("Bricks", create_explorer(ev), block=False, fps_cap=500)
+print(gameobj.score)
