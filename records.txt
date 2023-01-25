@@ -85,3 +85,5 @@ Resolving this brought the GA runtime from 230 seconds down to 168 seconds.
 This is a 27% gain in speed. Not bad.
 
 TODO: Create explorer-evaluator loop in bootstrapper. Perhaps start by running explorer only.
+Running explorer.
+We can collect 1000 runs, then try learn stuff from it, see how it goes.
