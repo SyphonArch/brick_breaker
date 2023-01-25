@@ -137,6 +137,7 @@ class Game:
         pygame.display.flip()
 
     def tick(self, early_termination_override=False):
+        global gui_initialized
         assert not self.game_over
         early_terminate = EARLY_TERMINATION or early_termination_override
         if not gui_initialized and self.gui:
@@ -158,6 +159,7 @@ class Game:
                     pygame.quit()
                     self.game_over = True
                     self.score = -1
+                    gui_initialized = False
                     return
                 if event.type == pygame.MOUSEBUTTONUP:
                     self.mouse_clicked = True
@@ -231,8 +233,9 @@ class Game:
                 if game_over:
                     if self.gui:
                         pygame.quit()
+                        gui_initialized = False
                     self.game_over = True
-                    self.score = self.iteration
+                    self.score = self.iteration - 1
                 self.responsive = True
 
     def step(self):
@@ -260,12 +263,12 @@ def main(title="Bricks", ai_override: Callable[[Game], float] = None, gui: bool 
 
     gamevar = Game(speed, title, fps_cap, gui, ai_override, block)
 
-    history = [(None, gamevar.grid.copy())]
+    history = [(None, gamevar.grid.copy(), gamevar.ball_count)]
 
     # Event loop
     while True:
         gamevar.step()  # This is not one frame. It is one round of input. (a.k.a. step)
-        history.append((gamevar.grid_before_gen, gamevar.grid.copy()))
+        history.append((gamevar.grid_before_gen, gamevar.grid.copy(), gamevar.ball_count))
         if gamevar.game_over:
             gamevar.history = history
             return gamevar

@@ -8,21 +8,8 @@ import numpy as np
 
 
 def extract(gamevar: game.Game) -> npt.NDArray[float]:
+    """Given the Game, return the vector to input to an evaluator network."""
     grid_segment = gamevar.grid_before_gen[1:-1]
-
-    # The block below resolves symmetric matrices by converting them to the lexicographically larger one
-    resolved_symmetry = False
-    for i in range(len(grid_segment)):
-        for j in range(len(grid_segment[0]) // 2):
-            k = len(grid_segment[0]) - j - 1
-            if grid_segment[i][j] != grid_segment[i][k]:
-                resolved_symmetry = True
-                if grid_segment[i][j] < grid_segment[i][k]:
-                    grid_segment = np.flip(grid_segment, 1)
-                break
-        if resolved_symmetry:
-            break
-
     grid_regularized = np.log(grid_segment + 1)
     return np.append(grid_regularized.flatten(), gamevar.ball_count)
 
@@ -54,3 +41,9 @@ class Evaluator(nn.Module):
         x = torchf.relu(self.drop2(self.lin2(x)))
         x = torchf.relu(self.lin3(x))
         return x
+
+    def save(self, path):
+        torch.save(self.state_dict(), path)
+
+    def load(self, path):
+        self.load_state_dict(torch.load(path))

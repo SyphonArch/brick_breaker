@@ -38,9 +38,3 @@ def create_explorer(network):
         return _candidates[np.argmax(network(input_tensor).detach())]
 
     return explorer
-
-
-ev = evaluator.Evaluator()
-ev.eval()
-gameobj = game.main("Bricks", create_explorer(ev), block=False, fps_cap=500, gui=True)
-print(gameobj.score)
