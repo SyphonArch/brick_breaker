@@ -164,4 +164,5 @@ We could create a much larger dataset, and try learning from it again.
     Write README.
 
     This was a toy project, from the start.
+    I need to get better at wrapping things up.
     Let's move on to some real stuff now!
