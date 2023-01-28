@@ -86,4 +86,4 @@ This is a 27% gain in speed. Not bad.
 
 TODO: Create explorer-evaluator loop in bootstrapper. Perhaps start by running explorer only.
 Running explorer.
-We can collect 1000 runs, then try learn stuff from it, see how it goes.
+We can collect 1000 runs, then try to learn stuff from it, see how it goes.

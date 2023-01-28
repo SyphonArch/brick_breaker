@@ -8,7 +8,7 @@ from copy import deepcopy
 import evaluator
 import torch
 
-RESOLUTION = 1024
+RESOLUTION = 128
 _seeds = np.array([i / (RESOLUTION - 1) for i in range(RESOLUTION)])
 _candidates = _seeds * (constants.ANGLE_MAX_RAD - constants.ANGLE_MIN_RAD) + constants.ANGLE_MIN_RAD
 CPU_COUNT = os.cpu_count()
@@ -26,15 +26,15 @@ def step_game(gamevar_angle):
 explorer = None  # This is needed so that the local function 'explorer' can be pickled for multiprocessing
 
 
-def create_explorer(network):
+def create_explorer(network, cpu=CPU_COUNT):
     global explorer
 
     def explorer(gamevar: game.Game) -> float:
         to_simulate = [(deepcopy(gamevar), angle) for angle in _candidates]
-        with Pool(CPU_COUNT) as p:
+        with Pool(cpu) as p:
             vectors = np.asarray(p.map(step_game, to_simulate))
 
-        input_tensor = torch.tensor(vectors, dtype=torch.float32)
+        input_tensor = torch.tensor(vectors)
         return _candidates[np.argmax(network(input_tensor).detach())]
 
     return explorer
