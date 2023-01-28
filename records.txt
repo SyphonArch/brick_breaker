@@ -84,6 +84,84 @@ because the AI was being run even when the game wasn't in its responsive state.
 Resolving this brought the GA runtime from 230 seconds down to 168 seconds.
 This is a 27% gain in speed. Not bad.
 
-TODO: Create explorer-evaluator loop in bootstrapper. Perhaps start by running explorer only.
 Running explorer.
 We can collect 1000 runs, then try to learn stuff from it, see how it goes.
+
+---
+
+We have the first of generation 1!
+They perform excellent, except for some rare hiccups.
+
+Dividing the angle by 128 looked good enough, just eyeballing.
+
+I am still tuning the hyperparameters for the evaluator.
+
+I just trained the network some more epochs, up to 10000, and now it performs crazy.
+Almost every move results in all the bricks being cleared.
+It is very convincing that the AI will just continue indefinitely.
+That means that we can't really continue a bootstrapped learning loop,
+as the AI simply beat the game already at gen-1.
+
+What now?
+- I could try training the network even more, as even at 10000 epochs, there are no signs of overfitting.
+    --> I think we're starting to see diminishing returns with the epochs. And as gen-0's network was random,
+    I think it is impossible by nature to perfectly predict the labels. Don't think it's worth it.
+
+- As we now know that n=128 is okay for angle division, we can simulate generation 0 again, but much faster.
+We could create a much larger dataset, and try learning from it again.
+    --> Again, I don't think having a larger dataset will achieve anything much better. Not worth it.
+
+- I could implement my own hard-coded AI, also explorer(angle simulation) based, for comparison.
+    --> Won't be too hard to do. Given how the gen-1 AI is able to clear all blocks, a hard-coded AI will
+    also be clearing all blocks, even more reliably. So a performance comparison will be hard to do, because...
+    both AIs just don't die. We could introduce new metrics to measure performance like how 'reliably' the bricks are
+    being cleared, but the time and effort to go all the way will not be worth it, I think.
+
+    From what I saw today, I think it is the truth that a calculation-based AI will just be invincible.
+    Why should I create a hard-coded AI?
+
+    ... Because it doesn't take much effort, I guess. I could still just compare the two AIs, not necessarily with
+    a justifiable metric, but by simply watching them play.
+
+- I could add an AI-assist functionality in the regular game mode.
+    --> No reason not to! Let's do it. Which AI to use, I can decide after I test them.
+
+- I could try train a non-simulation based AI using this simulation-based AI.
+    --> Before I burn another day on this... I don't think this will work.
+    The AI we have only checks at finite steps, and what state it aims for is not a 'clear' target.
+    This AI's output is far from a fixed answer - it is just... this AI's output.
+    Considering all this, it will be really weird for another network to learn this simulation AI's behaviour.
+    Let's not.
+
+- Write a README or something.
+    --> Yeah. I should. Sigh.
+
+---
+
+# Conclusions
+1. This, as in creating a Brick Breaker AI, is a hard problem.
+    We don't have labeled answers to game states, so we must either use some form of reinforcement learning or
+    genetic algorithms(or some other stuff that I'm not familiar with).
+    The GA approach failed. If I really take my time to learn and apply a RL model, it might work. Who knows.
+
+    But for time's sake, I decided to switch to a more computational, simulation based approach.
+    If I am to learn RL, I should work on a more established problem, so that I can actually learn,
+    instead of having no idea what I'm doing.
+
+2. I didn't want to do the simulation based approach.
+    It seemed less Artificial Intelligence and more... simulation.
+    But I had made my compromise.
+
+    There was still the task of deciding what game state was good and what state bad, and I had a plan to train a
+    network to do this...
+
+    And I did, and it worked!
+    So I can safely call this a success.
+    Stop feeling so bad.
+
+3. What to do next?
+    Write my hard-coded AI, integrate AI-assist function.
+    Write README.
+
+    This was a toy project, from the start.
+    Let's move on to some real stuff now!

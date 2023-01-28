@@ -109,16 +109,23 @@ def train(generation: int, num_epoch):
     print("Finished Training")
     net.save(evaluator_path(generation))
 
-    inputs, labels = test_dataset[:]
+    inputs1, labels1 = test_dataset[:]
+    inputs2, labels2 = train_dataset[:]
     net.eval()
     with torch.no_grad():
-        outputs = net(torch.FloatTensor(np.asarray(inputs)).to(device)).cpu()
+        outputs1 = net(torch.FloatTensor(np.asarray(inputs1)).to(device)).cpu()
+        outputs2 = net(torch.FloatTensor(np.asarray(inputs2)).to(device)).cpu()
     plot.axes().axline((0, 0), slope=1, color="red")
-    plot.scatter(labels, outputs)
+    plot.scatter(labels2, outputs2, marker=1, label='train')
+    plot.scatter(labels1, outputs1, marker=0, label="test")
     plot.title(f"EPOCH: {num_epoch}, lr: {learning_rate}")
+    plot.title(f"EPOCH: {num_epoch}, lr: {learning_rate}")
+    plot.xlabel("ground truth")
+    plot.ylabel("prediction")
+    plot.legend()
     plot.show()
 
 
 if __name__ == '__main__':
     # torch.device("cpu")
-    train(1, 1000)
+    train(1, 10)
