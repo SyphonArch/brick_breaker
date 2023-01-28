@@ -3,6 +3,7 @@ import evaluator
 import game
 import pickle
 import explorer
+import re
 from progressbar import ProgressBar
 
 EVALUATOR_PATH = './evaluators'
@@ -24,11 +25,9 @@ def simulate(generation: int, iterations: int, gui=False):
         with os.scandir(gen_path) as it:
             for entry in it:
                 if entry.is_file():
-                    if entry.name.endswith('.pickle'):
-                        filename_split = entry.name.split('.')
-                        assert len(filename_split) == 2
-                        assert filename_split[0].isdigit()
-                        iteration = int(filename_split[0])
+                    result = re.match(r'^hist-(\d+)\.pickle$', entry.name)
+                    if result is not None:
+                        iteration = int(result.group(1))
                         maximum_it = max(maximum_it, iteration)
                         it_count += 1
         # If the following assertion fails, there are some iteration numbers missing.
@@ -57,10 +56,10 @@ def simulate(generation: int, iterations: int, gui=False):
         gameobj = game.main("Bricks", explorer.create_explorer(ev), block=False, fps_cap=0, gui=gui)
         assert gameobj.score != -1
         assert gameobj.score + 1 == len(gameobj.history)
-        with open(f'{gen_path}/{i}.pickle', 'wb') as f:
+        with open(f'{gen_path}/hist-{i}.pickle', 'wb') as f:
             pickle.dump(gameobj.history, f)
         bar.update()
 
 
 if __name__ == "__main__":
-    simulate(0, 1000)
+    simulate(0, 1200)
