@@ -42,6 +42,8 @@ For example, the `EARLY_TERMINATION` variable can be set to `False` to not skip 
 
 (The default behaviour when `True` skips animation when possible to reduce wait time.)
 
+You may set `TRAIL` to `True` to add a visual trail to the balls.
+
 WARNING: Some changes may break the game.
 
 ## What About the Game AI?
