@@ -1,4 +1,7 @@
 # Brick Breaker
+
+![Screenshot from 2023-02-02 01-36-26](https://user-images.githubusercontent.com/48833786/216105111-602c6e26-1556-4e8c-9d1c-20eb5511aa3e.png)
+
 This project features a clone of a popular 'brick breaker' game variant, 
 characterised by shooting a volley of 'balls' at an angle of choice.
 
@@ -8,7 +11,8 @@ Along with the game, I have attempted two approaches at an AI for the game, of w
 - Rows of bricks are generated on every 'step'.
 - You may shoot your volley of balls at an angle of choice.
  
-    To do so, you
+    To do so, you!
+
     1. move your mouse cursor to select angle,
     2. and click to fire your volley.
 - When a brick 
