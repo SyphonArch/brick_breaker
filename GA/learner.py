@@ -156,7 +156,7 @@ class Breaker:
 
     def run(self, title="Breaker run", gui=False, fps_cap=constants.FPS, block=False, speed_override=True):
         """Run the game on the Breaker AI, and get a score!"""
-        gameobj = game.main(title=title, ai_override=self, gui=gui, fps_cap=fps_cap, block=block,
+        gameobj = game.main(title=title, ai_override=True, ai_function=self, gui=gui, fps_cap=fps_cap, block=block,
                             speed_override=speed_override)
         return gameobj.score
 

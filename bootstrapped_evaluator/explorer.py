@@ -5,7 +5,7 @@ from multiprocessing import Pool
 import os
 from typing import Callable
 from copy import deepcopy
-import evaluator
+import bootstrapped_evaluator.evaluator as evaluator
 import torch
 
 RESOLUTION = 128
@@ -16,7 +16,7 @@ CPU_COUNT = os.cpu_count()
 
 def step_game(gamevar_angle):
     gamevar, angle = gamevar_angle
-    gamevar.ai_override = lambda _: angle
+    gamevar.ai_function = lambda _: angle
     gamevar.gui = False
     gamevar.block = False
     gamevar.step()
@@ -37,6 +37,7 @@ def create_explorer(network: evaluator.Evaluator, cpu=CPU_COUNT) -> Callable:
             vectors = np.asarray(p.map(step_game, to_simulate))
 
         input_tensor = torch.tensor(vectors)
+        network.eval()
         return _candidates[np.argmax(network(input_tensor).detach())]
 
     return explorer

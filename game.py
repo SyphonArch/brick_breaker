@@ -21,10 +21,14 @@ gui_initialized = False
 
 
 class Game:
-    def __init__(self, speed: int, title: str = "Bricks", fps_cap=FPS, gui: bool = True,
-                 ai_override: Callable[[Game], float] = None, block: bool = False):
+    def __init__(self, speed: int, title: str = "Bricks", fps_cap=FPS, gui: bool = True, ai_override: bool = False,
+                 ai_function: Callable[[Game], float] = None, block: bool = False):
+        if ai_override:
+            assert ai_function is not None
+
         self.gui = gui
         self.ai_override = ai_override
+        self.ai_function = ai_function
         self.block = block
 
         self.fps_cap = fps_cap
@@ -70,6 +74,8 @@ class Game:
 
         self.game_over = False
         self.score = 0
+
+        self.ai_keydown = False
 
         # This is edited from outside the class, for now.
         # Should only be added after game termination, so that simulation doesn't waste time copying the history.
@@ -122,13 +128,13 @@ class Game:
         pygame_screen.blit(pygame_smallfont.render('X' + str(self.balls_to_shoot), True, WHITE),
                            (self.shoot_pos[0] + 20, RES_Y - 20))
 
-        if self.ai_override is None:
+        if not self.ai_override:
             mouse_pos = pygame.mouse.get_pos()
             self.mouse_vector = np.array(mouse_pos) - self.shoot_pos
             self.mouse_vector = logic.clipped_direction(self.mouse_vector)
 
         if self.responsive:
-            if self.ai_override is None:
+            if not self.ai_override:
                 arrow_color = BALL_COLOR
             else:
                 arrow_color = RED
@@ -144,15 +150,7 @@ class Game:
             self.gui_initialize()
 
         self.mouse_clicked = False
-        if self.gui:
-            self.flip()
-        else:
-            if self.ai_override is None:
-                if not self.message_printed:
-                    print("I don't know what you're planning to do with no interface.")
-                    print("I guess we could just stare at each other forever.")
-                    self.message_printed = True
-
+        self.ai_keydown = False
         if self.gui:
             for event in pygame.event.get():
                 if event.type == QUIT:
@@ -161,13 +159,23 @@ class Game:
                     self.score = -1
                     gui_initialized = False
                     return
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_a:
+                        self.ai_keydown = True
                 if event.type == pygame.MOUSEBUTTONUP:
                     self.mouse_clicked = True
+            self.flip()
+        else:
+            if not self.ai_override:
+                if not self.message_printed:
+                    print("I don't know what you're planning to do with no interface.")
+                    print("I guess we could just stare at each other forever.")
+                    self.message_printed = True
 
         if self.responsive:
-            if self.ai_override is not None:
+            if self.ai_override:
                 if not any(self.mouse_vector):  # If AI has not been called yet, calculate mouse_vector
-                    shoot_angle = self.ai_override(self)
+                    shoot_angle = self.ai_function(self)
                     self.mouse_vector = physics.rotate(np.array([ARROW_MAX_LENGTH, 0]), shoot_angle)
                     self.mouse_vector = logic.clipped_direction(self.mouse_vector)
                 # If block == True, then a mouse click needs to happen to unblock AI.
@@ -254,14 +262,14 @@ class Game:
                 return
 
 
-def main(title="Bricks", ai_override: Callable[[Game], float] = None, gui: bool = True, fps_cap=FPS, block=False,
-         speed_override: bool = False) -> Game:
+def main(title="Bricks", ai_override: bool = False, ai_function: Callable[[Game], float] = None, gui: bool = True,
+         fps_cap=FPS, block=False, speed_override: bool = False) -> Game:
     if speed_override:
         speed = SPEED_LIMIT
     else:
         speed = SPEED
 
-    gamevar = Game(speed, title, fps_cap, gui, ai_override, block)
+    gamevar = Game(speed, title, fps_cap, gui, ai_override, ai_function, block)
 
     history = [(None, gamevar.grid.copy(), gamevar.ball_count)]
 
@@ -275,6 +283,8 @@ def main(title="Bricks", ai_override: Callable[[Game], float] = None, gui: bool 
 
 
 if __name__ == '__main__':
-    gameobj = main()
+    import bootstrapped_evaluator.explorer as explorer
+
+    gameobj = main(ai_function=explorer.created_hardcoded_explorer(), fps_cap=500)
     print('GAME OVER!')
     print('Score = {}'.format(gameobj.score))

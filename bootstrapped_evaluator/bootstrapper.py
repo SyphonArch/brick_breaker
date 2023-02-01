@@ -3,7 +3,7 @@ import evaluator
 import game
 import pickle
 import explorer
-from paths import *
+from bootstrapped_evaluator.paths import *
 import numpy as np
 from progressbar import ProgressBar
 
@@ -44,7 +44,7 @@ def simulate(generation: int, iterations: int, gui=False):
     bar.i = start
     bar.start()
     for i in range(start, iterations):
-        gameobj = game.main("Bricks", explorer.create_explorer(ev), block=False, fps_cap=500, gui=gui)
+        gameobj = game.main("Bricks", True, explorer.create_explorer(ev), block=False, fps_cap=500, gui=gui)
         assert gameobj.score != -1
         assert gameobj.score + 1 == len(gameobj.history)
         with open(f'{history_path(generation)}/hist-{i}.pickle', 'wb') as f:
