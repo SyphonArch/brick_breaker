@@ -1,4 +1,4 @@
-# Brick Breaker
+# Brick Breaker (Game + AI)
 
 ![Brick Breaker demonstration](https://user-images.githubusercontent.com/48833786/216108673-f3823999-e3e9-4415-84eb-81ef17070209.png)
 
@@ -65,7 +65,7 @@ and choose the best option.
 - I planned to repeat this process for more generations of AI with increasingly better performance, but... the 1st gen AI was already too good at the game.
 
   It wasn't plausible to run the 1st gen AI multiple times, as games just went on and on.
-- So I finished at the 1st generation.
+- So I stopped at the 1st generation.
   #### Hard Coded Evaluator
   - Instead of an evaluator trained on previous game history, I also tried implementing a hard-coded weight matrix for the evaluator.
   - This turned out to have decent performance, and seemed more stable than our trained evaluator.
