@@ -30,6 +30,8 @@ class Game:
         self.ai_override = ai_override
         self.ai_function = ai_function
         self.block = block
+        self.ai_keydown = False
+        self.ai_shoot_angle = None
 
         self.fps_cap = fps_cap
 
@@ -74,8 +76,6 @@ class Game:
 
         self.game_over = False
         self.score = 0
-
-        self.ai_keydown = False
 
         # This is edited from outside the class, for now.
         # Should only be added after game termination, so that simulation doesn't waste time copying the history.
@@ -128,16 +128,18 @@ class Game:
         pygame_screen.blit(pygame_smallfont.render('X' + str(self.balls_to_shoot), True, WHITE),
                            (self.shoot_pos[0] + 20, RES_Y - 20))
 
-        if not self.ai_override:
+        if not self.ai_override and not self.ai_keydown:
             mouse_pos = pygame.mouse.get_pos()
             self.mouse_vector = np.array(mouse_pos) - self.shoot_pos
             self.mouse_vector = logic.clipped_direction(self.mouse_vector)
 
         if self.responsive:
-            if not self.ai_override:
-                arrow_color = BALL_COLOR
-            else:
+            if self.ai_override or (self.ai_keydown and self.ai_shoot_angle is not None):
                 arrow_color = RED
+            elif self.ai_keydown:
+                arrow_color = YELLOW
+            else:
+                arrow_color = BALL_COLOR
             logic.draw_arrow_modified(pygame_screen, arrow_color, self.shoot_pos, self.mouse_vector, ARROW_MAX_LENGTH)
 
         pygame.display.flip()
@@ -150,7 +152,6 @@ class Game:
             self.gui_initialize()
 
         self.mouse_clicked = False
-        self.ai_keydown = False
         if self.gui:
             for event in pygame.event.get():
                 if event.type == QUIT:
@@ -159,10 +160,13 @@ class Game:
                     self.score = -1
                     gui_initialized = False
                     return
-                if event.type == pygame.KEYDOWN:
+                elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_a:
                         self.ai_keydown = True
-                if event.type == pygame.MOUSEBUTTONUP:
+                elif event.type == pygame.KEYUP:
+                    if event.key == pygame.K_a:
+                        self.ai_keydown = False
+                elif event.type == pygame.MOUSEBUTTONUP:
                     self.mouse_clicked = True
             self.flip()
         else:
@@ -173,14 +177,15 @@ class Game:
                     self.message_printed = True
 
         if self.responsive:
-            if self.ai_override:
-                if not any(self.mouse_vector):  # If AI has not been called yet, calculate mouse_vector
-                    shoot_angle = self.ai_function(self)
-                    self.mouse_vector = physics.rotate(np.array([ARROW_MAX_LENGTH, 0]), shoot_angle)
-                    self.mouse_vector = logic.clipped_direction(self.mouse_vector)
+            if self.ai_override or self.ai_keydown:
+                if self.ai_shoot_angle is None:  # If AI has not been called yet, calculate ai_shoot_angle
+                    self.ai_shoot_angle = self.ai_function(self)
+                self.mouse_vector = physics.rotate(np.array([ARROW_MAX_LENGTH, 0]), self.ai_shoot_angle)
+                self.mouse_vector = logic.clipped_direction(self.mouse_vector)
                 # If block == True, then a mouse click needs to happen to unblock AI.
-                if not self.block or self.mouse_clicked:
-                    self.mouse_clicked = True
+                if self.ai_override:
+                    if not self.block or self.mouse_clicked:
+                        self.mouse_clicked = True
             if self.mouse_clicked:
                 self.responsive = False
                 self.ball_launch_count_down = 0
@@ -260,6 +265,7 @@ class Game:
             self.tick(early_termination_override=True)
             if self.game_over:
                 return
+        self.ai_shoot_angle = None
 
 
 def main(title="Bricks", ai_override: bool = False, ai_function: Callable[[Game], float] = None, gui: bool = True,
@@ -285,6 +291,8 @@ def main(title="Bricks", ai_override: bool = False, ai_function: Callable[[Game]
 if __name__ == '__main__':
     import bootstrapped_evaluator.explorer as explorer
 
-    gameobj = main(ai_function=explorer.created_hardcoded_explorer(), fps_cap=500)
+    print("Let's play Brick Breaker!")
+    print("You may hold [A] for AI-assist.")
+    gameobj = main(ai_function=explorer.create_hardcoded_explorer(), ai_override=False)
     print('GAME OVER!')
     print('Score = {}'.format(gameobj.score))
