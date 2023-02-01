@@ -1,4 +1,7 @@
 import re
+import os
+
+os.chdir(os.path.dirname(__file__))
 
 EVALUATOR_PATH = './evaluators'
 HISTORY_PATH = './histories'

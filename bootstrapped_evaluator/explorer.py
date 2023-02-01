@@ -6,6 +6,7 @@ import os
 from typing import Callable
 from copy import deepcopy
 import bootstrapped_evaluator.evaluator as evaluator
+import bootstrapped_evaluator.paths as paths
 import torch
 
 _seeds = np.array([i / (constants.EXPLORER_RESOLUTION - 1) for i in range(constants.EXPLORER_RESOLUTION)])
@@ -27,7 +28,7 @@ explorer = None  # This is needed so that the local function 'explorer' can be p
 hc_explorer = None
 
 
-def create_explorer(network: evaluator.Evaluator, cpu=CPU_COUNT) -> Callable:
+def create_explorer(network: evaluator.Evaluator, cpu=CPU_COUNT) -> Callable[[game.Game], float]:
     """Given an Evaluator network, creates an AI agent."""
     global explorer
 
@@ -43,7 +44,14 @@ def create_explorer(network: evaluator.Evaluator, cpu=CPU_COUNT) -> Callable:
     return explorer
 
 
-def create_hardcoded_explorer(cpu=CPU_COUNT) -> Callable:
+def create_explorer_from_gen(generation: int, cpu=CPU_COUNT) -> Callable[[game.Game], float]:
+    """Generate explorer from file."""
+    ev = evaluator.Evaluator()
+    ev.load(paths.evaluator_path(generation))
+    return create_explorer(ev, cpu)
+
+
+def create_hardcoded_explorer(cpu=CPU_COUNT) -> Callable[[game.Game], float]:
     """Creates a hard-coded evaluator based AI agent."""
     global hc_explorer
     grid_weights = np.asarray([[1, 1, 1, 1, 1, 1],

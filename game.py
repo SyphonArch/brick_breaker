@@ -293,6 +293,8 @@ if __name__ == '__main__':
 
     print("Let's play Brick Breaker!")
     print("You may hold [A] for AI-assist.")
-    gameobj = main(ai_function=explorer.create_hardcoded_explorer(), ai_override=False)
+    ai_callable = explorer.create_hardcoded_explorer()
+    # ai_callable = explorer.create_explorer_from_gen(1)
+    gameobj = main(ai_function=ai_callable, ai_override=False)
     print('GAME OVER!')
     print('Score = {}'.format(gameobj.score))
