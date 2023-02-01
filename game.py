@@ -289,7 +289,7 @@ def main(title="Bricks", ai_override: bool = False, ai_function: Callable[[Game]
 
 
 if __name__ == '__main__':
-    import bootstrapped_evaluator.explorer as explorer
+    import explorer_evaluator.explorer as explorer
 
     print("Let's play Brick Breaker!")
     print("You may hold [A] for AI-assist.")

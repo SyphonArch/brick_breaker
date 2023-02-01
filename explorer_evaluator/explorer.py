@@ -5,8 +5,8 @@ from multiprocessing import Pool
 import os
 from typing import Callable
 from copy import deepcopy
-import bootstrapped_evaluator.evaluator as evaluator
-import bootstrapped_evaluator.paths as paths
+import explorer_evaluator.evaluator as evaluator
+import explorer_evaluator.paths as paths
 import torch
 
 _seeds = np.array([i / (constants.EXPLORER_RESOLUTION - 1) for i in range(constants.EXPLORER_RESOLUTION)])

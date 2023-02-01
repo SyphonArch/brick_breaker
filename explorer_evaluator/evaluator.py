@@ -7,7 +7,7 @@ import torch.optim as optim
 import game
 import numpy.typing as npt
 import numpy as np
-from bootstrapped_evaluator.paths import *
+from explorer_evaluator.paths import *
 import matplotlib.pyplot as plot
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

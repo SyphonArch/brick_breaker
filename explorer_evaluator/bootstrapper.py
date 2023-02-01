@@ -1,9 +1,8 @@
-import os
 import evaluator
 import game
 import pickle
 import explorer
-from bootstrapped_evaluator.paths import *
+from explorer_evaluator.paths import *
 import numpy as np
 from progressbar import ProgressBar
 
