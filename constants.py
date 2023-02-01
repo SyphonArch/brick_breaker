@@ -12,6 +12,7 @@ WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
 GREEN = (0, 255, 0)
+YELLOW = (255, 255, 0)
 
 BALL_COLOR = (0, 100, 255)
 TRAIL = False
@@ -33,6 +34,8 @@ ARROW_MAX_LENGTH = 200
 FPS = 144
 
 EARLY_TERMINATION = True
+
+EXPLORER_RESOLUTION = 128  # how many angles to subdivide into for exploration
 
 # Don't touch
 assert (RADIUS + SPEED) * 2 < HEIGHT

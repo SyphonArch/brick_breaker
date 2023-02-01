@@ -8,8 +8,7 @@ from copy import deepcopy
 import bootstrapped_evaluator.evaluator as evaluator
 import torch
 
-RESOLUTION = 128
-_seeds = np.array([i / (RESOLUTION - 1) for i in range(RESOLUTION)])
+_seeds = np.array([i / (constants.EXPLORER_RESOLUTION - 1) for i in range(constants.EXPLORER_RESOLUTION)])
 _candidates = _seeds * (constants.ANGLE_MAX_RAD - constants.ANGLE_MIN_RAD) + constants.ANGLE_MIN_RAD
 CPU_COUNT = os.cpu_count()
 
@@ -17,6 +16,7 @@ CPU_COUNT = os.cpu_count()
 def step_game(gamevar_angle):
     gamevar, angle = gamevar_angle
     gamevar.ai_function = lambda _: angle
+    gamevar.ai_override = True
     gamevar.gui = False
     gamevar.block = False
     gamevar.step()
@@ -43,7 +43,7 @@ def create_explorer(network: evaluator.Evaluator, cpu=CPU_COUNT) -> Callable:
     return explorer
 
 
-def created_hardcoded_explorer(cpu=CPU_COUNT) -> Callable:
+def create_hardcoded_explorer(cpu=CPU_COUNT) -> Callable:
     """Creates a hard-coded evaluator based AI agent."""
     global hc_explorer
     grid_weights = np.asarray([[1, 1, 1, 1, 1, 1],
