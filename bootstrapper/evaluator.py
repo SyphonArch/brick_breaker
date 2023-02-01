@@ -24,8 +24,7 @@ def extract(gamevar: game.Game) -> npt.NDArray[float]:
 def convert(grid: npt.NDArray[float], ball_count: int) -> npt.NDArray[float]:
     """Given the grid and the ball count, return the vector to input to an evaluator network."""
     grid_segment = grid[1:-1]
-    grid_regularized = np.log(grid_segment + 1)
-    together = np.append(grid_regularized.flatten(), ball_count)
+    together = np.append(grid_segment.flatten(), ball_count)
     return together.astype(np.float32)
 
 
@@ -128,4 +127,4 @@ def train(generation: int, num_epoch):
 
 if __name__ == '__main__':
     # torch.device("cpu")
-    train(1, 10)
+    train(1, 100)
