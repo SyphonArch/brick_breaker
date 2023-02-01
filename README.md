@@ -1,6 +1,6 @@
 # Brick Breaker
 
-![Brick Breaker demonstration](https://user-images.githubusercontent.com/48833786/216105111-602c6e26-1556-4e8c-9d1c-20eb5511aa3e.png)
+![Screenshot from 2023-02-02 01-36-26](https://user-images.githubusercontent.com/48833786/216108673-f3823999-e3e9-4415-84eb-81ef17070209.png)
 
 This project features a clone of a popular 'brick breaker' game variant, 
 characterised by shooting a volley of 'balls' at an angle of choice.
